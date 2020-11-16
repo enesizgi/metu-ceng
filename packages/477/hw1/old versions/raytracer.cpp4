@@ -1,0 +1,683 @@
+#include <iostream>
+#include <limits>
+#include <cmath>
+#include "parser.h"
+#include "math.h"
+#include "ppm.h"
+
+using namespace parser;
+typedef unsigned char RGB[3];
+ struct Ray 
+{
+    Vec3f a;
+    Vec3f b;
+} ;
+
+template <class T>
+T GetMax (T a, T b) {
+	return a > b ? a : b ;
+}
+
+template <class T>
+T GetMin (T a, T b) {
+	return a < b ? a : b ;
+}
+
+Vec3f cross(Vec3f const &a, Vec3f const &b)
+{
+	Vec3f tmp;
+	
+	tmp.x = a.y*b.z-b.y*a.z;
+	tmp.y = b.x*a.z-a.x*b.z;
+	tmp.z = a.x*b.y-b.x*a.y;
+	
+	return tmp;
+}
+
+float dot(Vec3f const &a, Vec3f const &b)
+{
+	return (a.x*b.x)+(a.y*b.y)+(a.z*b.z);
+}
+
+float length2(Vec3f const& v)
+{
+	return (v.x*v.x+v.y*v.y+v.z*v.z);
+}
+
+float length(Vec3f const& v)
+{
+	return sqrt(length2(v));
+}
+
+Vec3f normalize(Vec3f const &v)
+{
+	Vec3f tmp;
+	float d;
+	
+	d = length(v);
+	tmp.x = v.x/d;
+	tmp.y = v.y/d;
+	tmp.z = v.z/d;
+	
+	return tmp;
+}
+
+Vec3f add(Vec3f const &a, Vec3f const &b)
+{
+	Vec3f tmp;
+	tmp.x = a.x+b.x;
+	tmp.y = a.y+b.y;
+	tmp.z = a.z+b.z;
+	
+	return tmp;
+}
+
+Vec3f mult(Vec3f const& a, float const &c)
+{
+	Vec3f tmp;
+	tmp.x = a.x*c;
+	tmp.y = a.y*c;
+	tmp.z = a.z*c;
+	
+	return tmp;
+}
+
+float distance(Vec3f const &a, Vec3f const &b)
+{
+    return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)+(a.z-b.z)*(a.z-b.z));
+}
+
+void get_cam_u(Camera &cam){
+	cam.u = cross(cam.gaze,cam.up);
+	cam.u = normalize(cam.u);
+}
+
+Ray generateRay(int const& i, int const &j, Camera const &cam)
+{   
+	float x,y,z,w;
+    int W,H;
+    x = cam.near_plane.x;
+    y = cam.near_plane.y;
+    z = cam.near_plane.z;
+    w = cam.near_plane.w;
+    W = cam.image_width;
+    H = cam.image_height;
+    float pixelW = (y-x)/W;
+    float halfPixelW = pixelW*0.5;
+    float pixelH = (w-z)/H;
+    float halfPixelH = pixelH*0.5;    
+	Ray tmp;
+	Vec3f su,sv,s;
+	
+	tmp.a = cam.position;
+	
+	su = mult(cam.u,x+(i*pixelW)+halfPixelW);
+	sv = mult(cam.up,w-(j*pixelH)+halfPixelH);
+	
+	s = add(su,sv);
+	
+	tmp.b = add(mult(cam.gaze,cam.near_distance),s);
+    
+	
+	return tmp;
+}
+
+float intersectSphere(Ray const &r,Sphere const &s,Scene const &scene){
+    float A,B,C,delta;
+    Vec3f center;
+    float radius,t,t1,t2;
+    center = scene.vertex_data[s.center_vertex_id-1];
+    radius = s.radius;
+
+    C = (r.a.x-center.x)*(r.a.x-center.x)+(r.a.y-center.y)*(r.a.y-center.y)+(r.a.z-center.z)*(r.a.z-center.z)-radius*radius;
+
+	B = 2*r.b.x*(r.a.x-center.x)+2*r.b.y*(r.a.y-center.y)+2*r.b.z*(r.a.z-center.z);
+	
+	A = r.b.x*r.b.x+r.b.y*r.b.y+r.b.z*r.b.z;
+	
+	delta = B*B-4*A*C;
+
+	//std::cout << delta << '\n';
+	
+	if (delta < 0)
+		return -1;
+
+	else if (delta < 0)
+	{
+		t = -B / (2*A);
+	}
+
+	else		
+	{
+		delta = sqrt(delta);
+		A *= 2;
+	
+		t1 = GetMin( ((-B + delta) / A), ((-B - delta) / A) );
+		
+		t = (t1 >= 0) ? t1 : -1.0f ;
+//		t = t1;
+		
+	}
+
+	return t;
+
+}
+
+
+float intersectTriangle(Ray const &r,Triangle const &tr,Scene const &scene){
+	float  a,b,c,d,e,f,g,h,i,j,k,l;
+	float beta,gamma,t;
+	
+	float eimhf,gfmdi,dhmeg,akmjb,jcmal,blmkc;
+
+	float M;
+	
+	float dd;
+	Vec3f ma,mb,mc;
+
+	ma = scene.vertex_data[tr.indices.v0_id-1];
+	mb = scene.vertex_data[tr.indices.v1_id-1];
+	mc = scene.vertex_data[tr.indices.v2_id-1];
+	
+	a = ma.x-mb.x;
+	b = ma.y-mb.y;
+	c = ma.z-mb.z;
+
+	d = ma.x-mc.x;
+	e = ma.y-mc.y;
+	f = ma.z-mc.z;
+	
+	g = r.b.x;
+	h = r.b.y;
+	i = r.b.z;
+	
+	j = ma.x-r.a.x;
+	k = ma.y-r.a.y;
+	l = ma.z-r.a.z;
+	
+	eimhf = e*i-h*f;
+	gfmdi = g*f-d*i;
+	dhmeg = d*h-e*g;
+	akmjb = a*k-j*b;
+	jcmal = j*c-a*l;
+	blmkc = b*l-k*c;
+
+	M = a*eimhf+b*gfmdi+c*dhmeg;
+    if (M==0) return -1;
+	
+	t = -(f*akmjb+e*jcmal+d*blmkc)/M;
+	
+	if (t<1.0) return -1;
+	
+	gamma = (i*akmjb+h*jcmal+g*blmkc)/M;
+	
+	if (gamma<0 || gamma>1) return -1;
+	
+	beta = (j*eimhf+k*gfmdi+l*dhmeg)/M;
+	
+	if (beta<0 || beta>(1-gamma)) return -1;
+	
+	return t;
+}
+
+Vec3f Diffuse_shading(Vec3f const &kd,Vec3f const &n, Vec3f const &x, PointLight const &p){
+	Vec3f wo;
+	Vec3f wi = add(p.position,mult(x,-1.0f));
+	float r = length2(wi);
+	wi = normalize(wi);
+	float cos = GetMax(0.0f, dot(wi,n)) ;
+	Vec3f E = mult(p.intensity,1/r);
+	wo.x = kd.x*cos*E.x;
+	wo.y = kd.y*cos*E.y;
+	wo.z = kd.z*cos*E.z;
+	return wo;
+
+}
+
+Vec3f Ambient_Shading(Vec3f const &ka,Vec3f const &Ia){
+	Vec3f wo;
+	wo.x = ka.x*Ia.x;
+	wo.y = ka.y*Ia.y;
+	wo.z = ka.z*Ia.z;
+	return wo;
+}
+
+
+Vec3f Specular_Shading(Vec3f const &ks, Vec3f const &n, Vec3f const &x, PointLight const &p, Vec3f const &c_pos, float const &phong){
+	Vec3f wi = add(p.position, mult(x, -1));
+	float r = length2(wi);
+	wi = normalize(wi);
+	Vec3f wo = add(c_pos, mult(x, -1));
+	wo = normalize(wo);
+	Vec3f h = add(wi,wo);
+	h = normalize(h);
+	float cos = GetMax(0.0f,dot(n,h));
+	cos = pow(cos,phong);
+	Vec3f E = mult(p.intensity,1/r);
+	Vec3f L;
+	L.x = ks.x*cos*E.x;
+	L.y = ks.y*cos*E.y;
+	L.z = ks.z*cos*E.z;
+	
+	return L;
+}
+
+
+Vec3f getColor(Scene & scene, Vec3f const& cam_p, Vec3f const& normal,
+ Vec3f const& x, Material const &mat, int maxDepth) {
+
+	Vec3f La = Ambient_Shading(mat.ambient, scene.ambient_light);
+	for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light != scene.point_lights.end();light++) {
+		Ray shadow ;
+		shadow.b = normalize ( add( (*light).position , mult(x,-1) ) );
+		Vec3f wi = normalize(shadow.b);
+		shadow.a = add(x,mult(wi,scene.shadow_ray_epsilon));
+	//					shadow.b = normalize( add( (*light).position , mult(x,-1.0f) ) );
+		
+		float t1 = -1;
+		
+		int size_s = scene.spheres.size();
+
+		for(int k=0; k<size_s;k++ ){
+
+			float t;
+			t = intersectSphere(shadow,scene.spheres[k],scene);
+			if (t == -1 )
+				continue;
+
+			else {
+				t1 = t;
+				break;
+			}
+
+		}
+
+		if (t1 != -1) 
+			break;
+
+		int size_tr = scene.triangles.size();
+		
+		for(int k= 0;k<size_tr; k++ ){
+			float t;
+			t = intersectTriangle(shadow,scene.triangles[k],scene);
+			if (t == -1)
+				continue;
+
+			else {
+				t1 = t;
+				break;
+			}
+
+		}
+
+		if (t1 != -1) 
+			break;
+		
+		int size_m = scene.meshes.size();
+
+		for(int k = 0; k<size_m; k++){
+			//std::cout << "test2" << "\n";
+
+			int size_f = scene.meshes[k].faces.size();
+			//std::cout << size_f << "\n";
+
+			float t2 = -1;
+			for(int l = 0; l<size_f; l++){
+				
+				//std::cout << asdf++ << "\n";
+				float t;
+				Triangle tr;
+				tr.indices.v0_id = scene.meshes[k].faces[l].v0_id;
+				tr.indices.v1_id = scene.meshes[k].faces[l].v1_id;
+				tr.indices.v2_id = scene.meshes[k].faces[l].v2_id;
+
+				t = intersectTriangle(shadow,tr,scene);
+				if (t == -1)
+					continue;
+
+				else {
+					t2 = t;
+					break;
+				}
+			}
+
+			if (t2 == -1)
+				continue;
+
+			else {
+				t1 = t2;
+				break;
+			}
+
+		}
+		
+
+		if (t1 != -1) 
+			break;
+		
+		Vec3f Ld = Diffuse_shading(mat.diffuse,normal,shadow.a,*light);
+		Vec3f Ls = Specular_Shading(mat.specular,normal,x,*light,cam_p,mat.phong_exponent);
+		La = add(La,add(Ld,Ls));
+		if(maxDepth == 0){
+			return La;
+		}
+	}
+		Vec3f Lm;
+		Vec3f wr,wo;
+		wo = add(cam_p,mult(x,-1));
+		wo = normalize(wo);
+		wr = add(mult(wo,-1),mult(mult(normal,2),dot(normal,wo)));
+		wr = normalize(wr);
+		Ray mirror_ray;
+		mirror_ray.a = x;
+		mirror_ray.b = wr;
+
+
+		float t_min;
+		Vec3f new_x;
+		Vec3f new_normal;
+		Material new_mat;
+
+
+		float t_s = __FLT_MAX__;
+		int closest_s = -1;
+		int size_s = scene.spheres.size();
+		//std::cout << "test2" << "\n";
+		for(int k=0; k<size_s;k++ ){
+			float t;
+			t = intersectSphere(mirror_ray,scene.spheres[k],scene);
+			if(t>=1){
+				if(t<t_s){
+					t_s = t;
+					closest_s = k;
+				}
+			}
+		}
+
+
+		float t_tr = __FLT_MAX__;
+		int closest_tr = -1;
+		int size_tr =scene.triangles.size();
+		
+		for(int k= 0;k<size_tr; k++ ){
+			float t;
+			t = intersectTriangle(mirror_ray,scene.triangles[k],scene);
+			if(t>=1 && t<t_tr){
+				
+				t_tr = t;
+				closest_tr = k;
+			}
+
+		}
+
+		float t_mesh = __FLT_MAX__;
+		int closest_mesh = -1;
+		int size_m = scene.meshes.size();
+		float t_face = __FLT_MAX__;
+		float closest_face = -1;
+
+		for(int k = 0; k<size_m; k++){
+			//std::cout << "test2" << "\n";
+
+			int size_f = scene.meshes[k].faces.size();
+			//std::cout << size_f << "\n";
+
+			for(int l = 0; l<size_f; l++){
+				
+				//std::cout << asdf++ << "\n";
+				float t;
+				Triangle tr;
+				tr.indices.v0_id = scene.meshes[k].faces[l].v0_id;
+				tr.indices.v1_id = scene.meshes[k].faces[l].v1_id;
+				tr.indices.v2_id = scene.meshes[k].faces[l].v2_id;
+
+				t = intersectTriangle(mirror_ray,tr,scene);
+				if(t>=1 && t<t_face){
+					t_face = t;
+					closest_face = l;
+				}
+			}
+
+			if(t_face<t_mesh){
+				t_mesh = t_face;
+				closest_mesh = k;
+			}
+		}
+
+		if(t_mesh<= t_tr){
+			t_min = t_mesh;
+		}
+		else{	
+			t_min = t_tr;
+		}
+		if(t_s<t_min){
+			t_min = t_s;
+		}
+		if(t_min != __FLT_MAX__){
+			new_x = add(mirror_ray.a,mult(mirror_ray.b,t_min));
+			if(t_min == t_s){
+				
+				Vec3f center = scene.vertex_data[scene.spheres[closest_s].center_vertex_id-1];
+
+				center =mult(center,-1);
+				new_normal = add(x,center);
+				new_normal = normalize(normal);
+				new_mat = scene.materials[scene.spheres[closest_s].material_id-1];
+			}
+			if(t_min == t_tr){
+				Triangle tr;
+				Vec3f a, b, c, b_a, c_b;
+				tr = scene.triangles[closest_tr];
+				a = scene.vertex_data[tr.indices.v0_id-1];
+				b = scene.vertex_data[tr.indices.v1_id-1];
+				c = scene.vertex_data[tr.indices.v2_id-1];
+				b_a = add(b, mult(a, -1));
+				c_b = add(c, mult(b, -1));
+				new_normal = cross(b_a, c_b);
+				new_normal = normalize(normal);
+				new_mat = scene.materials[tr.material_id-1];
+			}
+			
+			if(t_min == t_mesh){
+				Face face;
+				Vec3f a, b, c, b_a, c_b;
+				face = scene.meshes[closest_mesh].faces[closest_face];
+				a = scene.vertex_data[face.v0_id-1];
+				b = scene.vertex_data[face.v1_id-1];
+				c = scene.vertex_data[face.v2_id-1];
+				b_a = add(b, mult(a, -1));
+				c_b = add(c, mult(b, -1));
+				new_normal = cross(b_a, c_b);
+				new_normal = normalize(normal);
+				new_mat =scene.materials[scene.meshes[closest_mesh].material_id-1];
+			}
+
+		Lm = getColor(scene, x,new_normal, new_x, new_mat,maxDepth -1 );
+		Vec3f km = new_mat.mirror ;
+		Lm.x = Lm.x*km.x;
+		Lm.y = Lm.y*km.y;
+		Lm.z = Lm.z*km.z;
+		/*
+		Vec3f Lt = add(La,Lm);
+		Lt.x = Lt.x*mat.mirror.x;
+		Lt.y = Lt.y*mat.mirror.y;
+		Lt.z = Lt.z*mat.mirror.z;*/
+		return add(La,Lm);
+
+		}
+		Vec3f tmp;
+		tmp.x = 0;
+		tmp.y = 0;
+		tmp.z = 0;
+		return La;
+	
+
+}
+int main(int argc, char* argv[])
+{
+    parser::Scene scene;
+
+    scene.loadFromXml(argv[1]);
+
+	for(std::vector<Camera>::iterator cam = scene.cameras.begin();cam != scene.cameras.end();cam++){
+		int width = (*cam).image_width;
+		int height = (*cam).image_height;
+		get_cam_u(*cam);
+		bool tmp = (*cam).u.y == 0;
+		unsigned char* image = new unsigned char [width * height * 3];
+		int w = 0;
+		for(int j=0;j<height;j++){
+			for(int i=0;i<width;i++){
+				//std::cout << "test" << "\n";
+				Ray r;
+				r = generateRay(i,j,*cam);
+
+				
+				float t_min;
+				Vec3f x;
+				Vec3f normal;
+
+
+				float t_s = __FLT_MAX__;
+				int closest_s = -1;
+				int size_s = scene.spheres.size();
+				//std::cout << "test2" << "\n";
+				for(int k=0; k<size_s;k++ ){
+					float t;
+					t = intersectSphere(r,scene.spheres[k],scene);
+					if(t>=1){
+						if(t<t_s){
+							t_s = t;
+							closest_s = k;
+						}
+					}
+				}
+
+				float t_tr = __FLT_MAX__;
+				int closest_tr = -1;
+				int size_tr =scene.triangles.size();
+				
+				for(int k= 0;k<size_tr; k++ ){
+					float t;
+					t = intersectTriangle(r,scene.triangles[k],scene);
+					if(t>=1 && t<t_tr){
+						
+						t_tr = t;
+						closest_tr = k;
+					}
+
+				}
+
+				float t_mesh = __FLT_MAX__;
+				int closest_mesh = -1;
+				int size_m = scene.meshes.size();
+				float t_face = __FLT_MAX__;
+				float closest_face = -1;
+
+				for(int k = 0; k<size_m; k++){
+					//std::cout << "test2" << "\n";
+
+					int size_f = scene.meshes[k].faces.size();
+					//std::cout << size_f << "\n";
+
+					for(int l = 0; l<size_f; l++){
+						
+						//std::cout << asdf++ << "\n";
+						float t;
+						Triangle tr;
+						tr.indices.v0_id = scene.meshes[k].faces[l].v0_id;
+						tr.indices.v1_id = scene.meshes[k].faces[l].v1_id;
+						tr.indices.v2_id = scene.meshes[k].faces[l].v2_id;
+
+						t = intersectTriangle(r,tr,scene);
+						if(t>=1 && t<t_face){
+							t_face = t;
+							closest_face = l;
+						}
+					}
+
+					if(t_face<t_mesh){
+						t_mesh = t_face;
+						closest_mesh = k;
+					}
+				}
+
+				if(t_mesh<= t_tr){
+					t_min = t_mesh;
+				}
+				else{	
+					t_min = t_tr;
+				}
+				if(t_s<t_min){
+					t_min = t_s;
+				}
+				if(t_min != __FLT_MAX__){
+					x = add(r.a,mult(r.b,t_min));
+					Material mat;
+					if(t_min == t_s){
+						
+						Vec3f center = scene.vertex_data[scene.spheres[closest_s].center_vertex_id-1];
+
+						center =mult(center,-1);
+						normal = add(x,center);
+						normal =normalize(normal);
+						mat =scene.materials[scene.spheres[closest_s].material_id-1];
+					}
+	 				if(t_min == t_tr){
+						Triangle tr;
+						Vec3f a, b, c, b_a, c_b;
+						tr = scene.triangles[closest_tr];
+						a = scene.vertex_data[tr.indices.v0_id-1];
+						b = scene.vertex_data[tr.indices.v1_id-1];
+						c = scene.vertex_data[tr.indices.v2_id-1];
+						b_a = add(b, mult(a, -1));
+						c_b = add(c, mult(b, -1));
+						normal = cross(b_a, c_b);
+						normal = normalize(normal);
+						mat =scene.materials[tr.material_id-1];
+					}
+					
+					if(t_min == t_mesh){
+						Face face;
+						Vec3f a, b, c, b_a, c_b;
+						face = scene.meshes[closest_mesh].faces[closest_face];
+						a = scene.vertex_data[face.v0_id-1];
+						b = scene.vertex_data[face.v1_id-1];
+						c = scene.vertex_data[face.v2_id-1];
+						b_a = add(b, mult(a, -1));
+						c_b = add(c, mult(b, -1));
+						normal = cross(b_a, c_b);
+						normal = normalize(normal);
+						mat =scene.materials[scene.meshes[closest_mesh].material_id-1];
+					}
+
+					Vec3f color;
+					color = getColor(scene,(*cam).position,normal,x,mat,scene.max_recursion_depth);
+					color.x = color.x > 255 ? 255 : round(color.x) ;
+					color.y = color.y > 255 ? 255 : round(color.y) ;
+					color.z = color.z > 255 ? 255 : round(color.z) ;
+
+					image[w++] = color.x;
+					image[w++] = color.y;
+					image[w++] = color.z;
+
+				}
+
+				else {
+					image[w++] = scene.background_color.x;
+					image[w++] = scene.background_color.y;
+					image[w++] = scene.background_color.z;
+				}
+			
+
+
+			}
+		}
+
+		write_ppm("test.ppm", image, (*cam).image_width, (*cam).image_height);
+
+
+		
+	}
+
+}
