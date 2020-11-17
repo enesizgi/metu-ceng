@@ -207,7 +207,7 @@ double intersectTriangle(Ray const &r,Triangle const &tr,Scene const &scene){
 	
 	t = -(f*akmjb+e*jcmal+d*blmkc)/M;
 
-	if (t<1) return -1;
+	if (t<scene.shadow_ray_epsilon) return -1;
 	
 	
 	gamma = (i*akmjb+h*jcmal+g*blmkc)/M;
