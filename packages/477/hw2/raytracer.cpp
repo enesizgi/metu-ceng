@@ -206,6 +206,8 @@ float intersectTriangle(Ray const &r,Triangle const &tr,Scene const &scene){
     if (M==0) return -1;
 	
 	t = -(f*akmjb+e*jcmal+d*blmkc)/M;
+
+	if (t<1) return -1;
 	
 	
 	gamma = (i*akmjb+h*jcmal+g*blmkc)/M;
@@ -277,7 +279,7 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 	for(int k=0; k<size_s;k++ ){
 		float t;
 		t = intersectSphere(ray,scene.spheres[k],scene);
-		if(t>=1){
+		if(t>0){
 			if(t<t_s){
 				t_s = t;
 				closest_s = k;
@@ -293,7 +295,7 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 	for(int k= 0;k<size_tr; k++ ){
 		float t;
 		t = intersectTriangle(ray,scene.triangles[k],scene);
-		if(t>=1 && t<t_tr){
+		if(t>0 && t<t_tr){
 			
 			t_tr = t;
 			closest_tr = k;
@@ -323,7 +325,7 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			tr.indices.v2_id = scene.meshes[k].faces[l].v2_id;
 
 			t = intersectTriangle(ray,tr,scene);
-			if(t>=1 && t<t_face){
+			if(t>0 && t<t_face){
 				t_face = t;
 				closest_face = l;
 			}
@@ -390,7 +392,7 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 	Ray shadow ;
 	shadow.b =  ( add( (*light).position , mult(x,-1) ) );
 	Vec3f wi = normalize(shadow.b);
-	shadow.a = add(x,mult(wi,scene.shadow_ray_epsilon));
+	shadow.a = add(x,mult(normal,scene.shadow_ray_epsilon));
 	
 	float t1 = -1;
 	
