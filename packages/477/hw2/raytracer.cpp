@@ -583,8 +583,6 @@ int main(int argc, char* argv[])
 		}
 		*temp3 = '\0';
 
-		std::cout << temp2 << '\n';
-
 		write_ppm(temp2, image, (*cam).image_width, (*cam).image_height);
 
 
