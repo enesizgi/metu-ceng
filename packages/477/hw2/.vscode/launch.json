@@ -6,7 +6,7 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
-        "args": ["simple.xml"],
+        "args": ["bunny.xml"],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}",
         "environment": [],
