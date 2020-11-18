@@ -515,22 +515,19 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 }
 
 static void LoadImages(int height, int width,
-int threadNumber, Camera cam, Scene scene) {
+float threadCounter, float numberofThreads,Camera cam, Scene scene) {
 	
 	long long w;
-	int j,finish;
+	float j,finish;
 
-	if (threadNumber == 0 ) {
-		j = 0;
-		finish = height/2;
-		w = 0;
-	}
+	
+	j = std::ceil( (threadCounter/numberofThreads)*height );
 
-	else {
-		j= height/2;
-		finish = height;
-		w = (width*height*3)/2;
-	}
+	finish = std::ceil( ((threadCounter+1)/numberofThreads)*height );
+
+	w = j*3*width;
+
+	//std::cout << j << " " << finish << " " << w << " " << "\n";
 
 	for(;j<finish;j++){
 		for(int i=0;i<width;i++){
@@ -567,12 +564,25 @@ int main(int argc, char* argv[])
 		get_cam_u(*cam);
 		bool tmp = (*cam).u.y == 0;
 		image = new unsigned char[width*height*3];
-		
-		std::thread t1(LoadImages,height,width,0,*cam,scene);
-		std::thread t2(LoadImages,height,width,1,*cam,scene);
 
-		t1.join();
-		t2.join();
+		unsigned int numberofThreads = std::thread::hardware_concurrency();
+
+		numberofThreads;
+
+		std::vector<std::thread> threads;
+
+		for (int i = 0;i<numberofThreads;i++) {
+			
+			threads.push_back(std::thread(LoadImages,height,width,i,numberofThreads,*cam,scene));
+			//std::cout << "Thread " << i << " opening..." << "\n";
+		}
+		
+		for (int i = 0;i<numberofThreads;i++) {
+			if (threads[i].joinable()) {
+				threads[i].join();
+			}
+			//std::cout << "Thread " << i << " closing..." << "\n";
+		}
 
 		std::string temp =  (*cam).image_name;
 		char* temp2 = new char[temp.size()+1];
