@@ -4,10 +4,17 @@
 #include "parser.h"
 #include "math.h"
 #include "ppm.h"
+#include <thread>
+#include <mutex>
+
+std::mutex m1;
+unsigned char* image;
 
 using namespace parser;
 typedef unsigned char RGB[3];
- struct Ray 
+ 
+ 
+struct Ray 
 {
     Vec3f a;
     Vec3f b;
@@ -136,8 +143,6 @@ double intersectSphere(Ray const &r,Sphere const &s,Scene const &scene){
 	A = r.b.x*r.b.x+r.b.y*r.b.y+r.b.z*r.b.z;
 	
 	delta = B*B-4*A*C;
-
-	//std::cout << delta << '\n';
 	
 	if (delta < 0)
 		return -1;
@@ -155,7 +160,6 @@ double intersectSphere(Ray const &r,Sphere const &s,Scene const &scene){
 		t1 = GetMin( ((-B + delta) / A), ((-B - delta) / A) );
 		
 		t = (t1 >= 0) ? t1 : -1.0f ;
-//		t = t1;
 		
 	}
 
@@ -436,15 +440,11 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 	int size_m = scene.meshes.size();
 
 	for(int k = 0; k<size_m; k++){
-		//std::cout << "test2" << "\n";
-
 		int size_f = scene.meshes[k].faces.size();
-		//std::cout << size_f << "\n";
-
+		
 		double t2 = -1;
 		for(int l = 0; l<size_f; l++){
-			
-			//std::cout << asdf++ << "\n";
+						
 			double t;
 			Triangle tr;
 			tr.indices.v0_id = scene.meshes[k].faces[l].v0_id;
@@ -476,7 +476,6 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 		continue;
 	
 	Vec3f Ld = Diffuse_shading(mat.diffuse,normal,x,*light);
-	//Vec3f Ls = Specular_Shading(mat.specular,normal,x,*light,cam_p,mat.phong_exponent);
 	Vec3f Ls = Specular_Shading(mat,normal,x,ray,*light);
 	La = add(La,add(Ld,Ls));
 }
@@ -495,17 +494,12 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 	mirror_ray.b = wr;
 
 
-	//Lm = getColor(scene, x,new_normal, new_x, new_mat,maxDepth -1 );
 	Lm = getColor(scene,maxDepth-1,mirror_ray);
 	Vec3f km = mat.mirror ;
 	Lm.x = Lm.x*km.x;
 	Lm.y = Lm.y*km.y;
 	Lm.z = Lm.z*km.z;
-	/*
-	Vec3f Lt = add(La,Lm);
-	Lt.x = Lt.x*mat.mirror.x;
-	Lt.y = Lt.y*mat.mirror.y;
-	Lt.z = Lt.z*mat.mirror.z;*/
+
 	return add(La,Lm);
 
 	}
@@ -520,11 +514,51 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 
 }
 
+static void LoadImages(int height, int width,
+int threadNumber, Camera cam, Scene scene) {
+	
+	long long w;
+	int j,finish;
+
+	if (threadNumber == 0 ) {
+		j = 0;
+		finish = height/2;
+		w = 0;
+	}
+
+	else {
+		j= height/2;
+		finish = height;
+		w = (width*height*3)/2;
+	}
+
+	for(;j<finish;j++){
+		for(int i=0;i<width;i++){
+
+			Ray r;
+			r = generateRay(i,j,cam);
+
+			Vec3f color;
+			color = getColor(scene,scene.max_recursion_depth,r);
+			color.x = color.x > 255 ? 255 : round(color.x) ;
+			color.y = color.y > 255 ? 255 : round(color.y) ;
+			color.z = color.z > 255 ? 255 : round(color.z) ;
+
+			m1.lock();
+			image[w++] = color.x;
+			image[w++] = color.y;
+			image[w++] = color.z;
+			m1.unlock();
+			
+			}
+
+	}
+	
+}
 
 int main(int argc, char* argv[])
 {
     parser::Scene scene;
-
     scene.loadFromXml(argv[1]);
 
 	for(std::vector<Camera>::iterator cam = scene.cameras.begin();cam != scene.cameras.end();cam++){
@@ -532,28 +566,13 @@ int main(int argc, char* argv[])
 		int height = (*cam).image_height;
 		get_cam_u(*cam);
 		bool tmp = (*cam).u.y == 0;
-		unsigned char* image = new unsigned char [width * height * 3];
-		int w = 0;
-		for(int j=0;j<height;j++){
-			for(int i=0;i<width;i++){
-				//std::cout << "test" << "\n";
-				Ray r;
-				r = generateRay(i,j,*cam);
+		image = new unsigned char[width*height*3];
+		
+		std::thread t1(LoadImages,height,width,0,*cam,scene);
+		std::thread t2(LoadImages,height,width,1,*cam,scene);
 
-				Vec3f color;
-				color = getColor(scene,scene.max_recursion_depth,r);
-				color.x = color.x > 255 ? 255 : round(color.x) ;
-				color.y = color.y > 255 ? 255 : round(color.y) ;
-				color.z = color.z > 255 ? 255 : round(color.z) ;
-
-				image[w++] = color.x;
-				image[w++] = color.y;
-				image[w++] = color.z;
-
-				}
-
-			}
-
+		t1.join();
+		t2.join();
 
 		std::string temp =  (*cam).image_name;
 		char* temp2 = new char[temp.size()+1];
