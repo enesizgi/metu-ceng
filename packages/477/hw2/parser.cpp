@@ -2,6 +2,8 @@
 #include "tinyxml2.h"
 #include <sstream>
 #include <stdexcept>
+#include <cstring>
+
 
 void parser::Scene::loadFromXml(const std::string& filepath)
 {
@@ -59,9 +61,10 @@ void parser::Scene::loadFromXml(const std::string& filepath)
     //Get Cameras
     element = root->FirstChildElement("Cameras");
     element = element->FirstChildElement("Camera");
-    Camera camera;
+    
     while (element)
     {
+        Camera camera;
         auto child = element->FirstChildElement("Position");
         stream << child->GetText() << std::endl;
         child = element->FirstChildElement("Gaze");
@@ -95,9 +98,10 @@ void parser::Scene::loadFromXml(const std::string& filepath)
     stream << child->GetText() << std::endl;
     stream >> ambient_light.x >> ambient_light.y >> ambient_light.z;
     element = element->FirstChildElement("PointLight");
-    PointLight point_light;
+    
     while (element)
     {
+        PointLight point_light;
         child = element->FirstChildElement("Position");
         stream << child->GetText() << std::endl;
         child = element->FirstChildElement("Intensity");
@@ -113,28 +117,100 @@ void parser::Scene::loadFromXml(const std::string& filepath)
     //Get Materials
     element = root->FirstChildElement("Materials");
     element = element->FirstChildElement("Material");
-    Material material;
+    
     while (element)
     {
+        Material material;
+        child = element->FirstChildElement("MirrorReflectance");
+
+        if (child) {
+            stream << child->GetText() << std::endl;
+            stream >> material.mirror.x >> material.mirror.y >> material.mirror.z;
+        }
+        
         child = element->FirstChildElement("AmbientReflectance");
         stream << child->GetText() << std::endl;
         child = element->FirstChildElement("DiffuseReflectance");
         stream << child->GetText() << std::endl;
         child = element->FirstChildElement("SpecularReflectance");
-        stream << child->GetText() << std::endl;
-        child = element->FirstChildElement("MirrorReflectance");
-        stream << child->GetText() << std::endl;
+        stream << child->GetText() << std::endl;        
         child = element->FirstChildElement("PhongExponent");
         stream << child->GetText() << std::endl;
 
         stream >> material.ambient.x >> material.ambient.y >> material.ambient.z;
         stream >> material.diffuse.x >> material.diffuse.y >> material.diffuse.z;
         stream >> material.specular.x >> material.specular.y >> material.specular.z;
-        stream >> material.mirror.x >> material.mirror.y >> material.mirror.z;
         stream >> material.phong_exponent;
 
         materials.push_back(material);
         element = element->NextSiblingElement("Material");
+    }
+    
+    //Get Textures
+    element = root->FirstChildElement("Textures");
+
+    if (element) {
+        element = element->FirstChildElement("Texture");
+        
+        while (element) {
+            Texture texture;
+            child = element->FirstChildElement("ImageName");
+            stream << child->GetText() << std::endl;
+            child = element->FirstChildElement("Interpolation");
+            stream << child->GetText() << std::endl;
+            child = element->FirstChildElement("DecalMode");
+            stream << child->GetText() << std::endl;
+            child = element->FirstChildElement("Appearance");
+            stream << child->GetText() << std::endl;
+
+            stream >> texture.imageName;
+            stream >> texture.interpolation;
+            stream >> texture.decalMode;
+            stream >> texture.appearance;
+
+            textures.push_back(texture);
+            element = element->NextSiblingElement("Texture");
+        }
+    }
+
+    //Get Transformations
+    element = root->FirstChildElement("Transformations");
+
+    if (element) {
+        child = element->FirstChildElement();
+
+        while (child) {
+            const char* tagName = child->Name();
+
+            if (! strcmp(tagName, "Translation")) {
+                Vec3f translation;
+                stream << child->GetText() << std::endl;
+                stream >> translation.x >> translation.y >> translation.z;
+
+                translations.push_back(translation);
+            }        
+
+            else if (! strcmp(tagName, "Scaling")) {
+                Vec3f scaling;      
+                stream << child->GetText() << std::endl;
+                stream >> scaling.x >> scaling.y >> scaling.z;
+
+                scalings.push_back(scaling);
+            } 
+
+            else if (! strcmp(tagName, "Rotation")) {
+                Rotation rotation;
+                
+                stream << child->GetText() << std::endl;
+                stream >> rotation.angle >> rotation.x >> rotation.y >> rotation.z;
+
+                rotations.push_back(rotation);
+            } 
+
+            else;
+
+            child = child->NextSiblingElement();
+        }
     }
 
     //Get VertexData
@@ -148,15 +224,46 @@ void parser::Scene::loadFromXml(const std::string& filepath)
     }
     stream.clear();
 
+    //Get TexCoordData
+    element = root->FirstChildElement("TexCoordData");
+    
+    if (element) {
+        stream << element->GetText() << std::endl;
+        Vec2f tex_coord;
+        while (!(stream >> tex_coord.x).eof())
+        {
+            stream >> tex_coord.y;
+            tex_coord_data.push_back(tex_coord);
+        }
+        
+        stream.clear();
+    }
+
     //Get Meshes
     element = root->FirstChildElement("Objects");
     element = element->FirstChildElement("Mesh");
-    Mesh mesh;
+    
     while (element)
     {
+        Mesh mesh;
         child = element->FirstChildElement("Material");
         stream << child->GetText() << std::endl;
         stream >> mesh.material_id;
+
+        child = element->FirstChildElement("Texture");
+
+        if (child) {
+            stream << child->GetText() << std::endl;
+            stream >> mesh.texture_id;
+        }
+
+        child = element->FirstChildElement("Transformations");
+        
+        if (child) {
+            const char* temp = child->GetText();
+            int len = strlen(temp);
+            mesh.transformations.assign(temp, len);
+        }
 
         child = element->FirstChildElement("Faces");
         stream << child->GetText() << std::endl;
@@ -177,12 +284,28 @@ void parser::Scene::loadFromXml(const std::string& filepath)
     //Get Triangles
     element = root->FirstChildElement("Objects");
     element = element->FirstChildElement("Triangle");
-    Triangle triangle;
+    
     while (element)
     {
+        Triangle triangle;
         child = element->FirstChildElement("Material");
         stream << child->GetText() << std::endl;
         stream >> triangle.material_id;
+
+        child = element->FirstChildElement("Texture");
+
+        if (child) {
+            stream << child->GetText() << std::endl;
+            stream >> triangle.texture_id;
+        }
+
+        child = element->FirstChildElement("Transformations");
+        
+        if (child) {
+            const char* temp = child->GetText();
+            int len = strlen(temp);
+            triangle.transformations.assign(temp, len);
+        }
 
         child = element->FirstChildElement("Indices");
         stream << child->GetText() << std::endl;
@@ -195,12 +318,28 @@ void parser::Scene::loadFromXml(const std::string& filepath)
     //Get Spheres
     element = root->FirstChildElement("Objects");
     element = element->FirstChildElement("Sphere");
-    Sphere sphere;
+    
     while (element)
     {
+        Sphere sphere;
         child = element->FirstChildElement("Material");
         stream << child->GetText() << std::endl;
         stream >> sphere.material_id;
+
+        child = element->FirstChildElement("Texture");
+
+        if (child) {
+            stream << child->GetText() << std::endl;
+            stream >> sphere.texture_id;
+        }
+
+        child = element->FirstChildElement("Transformations");
+
+        if (child) {
+            const char* temp = child->GetText();
+            int len = strlen(temp);
+            sphere.transformations.assign(temp, len);
+        }
 
         child = element->FirstChildElement("Center");
         stream << child->GetText() << std::endl;

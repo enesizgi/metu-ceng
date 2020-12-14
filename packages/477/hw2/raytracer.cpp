@@ -1,11 +1,14 @@
 #include <iostream>
 #include <limits>
 #include <cmath>
+#include <thread>
+#include <mutex>
+
 #include "parser.h"
 #include "math.h"
 #include "ppm.h"
-#include <thread>
-#include <mutex>
+#include "matrixInverse.h"
+#include "BVH.h"
 
 std::mutex m1;
 unsigned char* image;
@@ -274,7 +277,6 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 	Vec3f x;
 	Vec3f normal;
 	Material mat;
-
 
 	double t_s = __FLT_MAX__;
 	int closest_s = -1;
