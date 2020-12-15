@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include "parser.h"
 
 /*
  * m represents a 4x4 matrix stored as a 1D array in row-major-order.
@@ -8,6 +9,41 @@
  * inv contains the inverse of this matrix stored in the same
  * format as the input.
  */
+
+using namespace parser;
+
+void matrixMult (std::vector<double>& m1, std::vector<double>& m2, std::vector<double>& m3) {
+    // m1 is always 4x4 matrix.
+    // m2 can be 4x4 matrix or 4x1 matrix.
+    // m3 is result.  
+    if (m1.size() == 16 && m2.size() == 16) {
+        
+        m3[0] = m1[0]*m2[0] + m1[1]*m2[4] + m1[2]*m2[8] + m1[3]*m2[12] ;
+        m3[1] = m1[0]*m2[1] + m1[1]*m2[5] + m1[2]*m2[9] + m1[3]*m2[13] ;
+        m3[2] = m1[0]*m2[2] + m1[1]*m2[6] + m1[2]*m2[10] + m1[3]*m2[14] ;
+        m3[3] = m1[0]*m2[3] + m1[1]*m2[7] + m1[2]*m2[11] + m1[3]*m2[15] ;
+        m3[4] = m1[4]*m2[0] + m1[5]*m2[4] + m1[6]*m2[8] + m1[7]*m2[12] ;
+        m3[5] = m1[4]*m2[1] + m1[5]*m2[5] + m1[6]*m2[9] + m1[7]*m2[13] ;
+        m3[6] = m1[4]*m2[2] + m1[5]*m2[6] + m1[6]*m2[10] + m1[7]*m2[14] ;
+        m3[7] = m1[4]*m2[3] + m1[5]*m2[7] + m1[6]*m2[11] + m1[7]*m2[15] ;
+        m3[8] = m1[8]*m2[0] + m1[9]*m2[4] + m1[10]*m2[8] + m1[11]*m2[12] ;
+        m3[9] = m1[8]*m2[1] + m1[9]*m2[5] + m1[10]*m2[9] + m1[11]*m2[13] ;
+        m3[10] = m1[8]*m2[2] + m1[9]*m2[6] + m1[10]*m2[10] + m1[11]*m2[14] ;
+        m3[11] = m1[8]*m2[3] + m1[9]*m2[7] + m1[10]*m2[11] + m1[11]*m2[15] ;
+        m3[12] = m1[12]*m2[0] + m1[13]*m2[4] + m1[14]*m2[8] + m1[15]*m2[12] ;
+        m3[13] = m1[12]*m2[1] + m1[13]*m2[5] + m1[14]*m2[9] + m1[15]*m2[13] ;
+        m3[14] = m1[12]*m2[2] + m1[13]*m2[6] + m1[14]*m2[10] + m1[15]*m2[14] ;
+        m3[15] = m1[12]*m2[3] + m1[13]*m2[7] + m1[14]*m2[11] + m1[15]*m2[15] ;
+    }
+
+    else if (m1.size() == 16 && m2.size() == 4) {
+        m3[0] = m1[0]*m2[0] + m1[1]*m2[4] + m1[2]*m2[8] + m1[3]*m2[12] ;
+        m3[1] = m1[4]*m2[0] + m1[5]*m2[4] + m1[6]*m2[8] + m1[7]*m2[12] ;
+        m3[2] = m1[8]*m2[0] + m1[9]*m2[4] + m1[10]*m2[8] + m1[11]*m2[12] ;
+        m3[3] = m1[12]*m2[0] + m1[13]*m2[4] + m1[14]*m2[8] + m1[15]*m2[12] ;
+    }
+}
+
 void invert(double m[], double inv[])
 {
     //

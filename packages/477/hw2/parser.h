@@ -8,6 +8,11 @@ namespace parser
 {
     //Notice that all the structures are as simple as possible
     //so that you are not enforced to adopt any style or design.
+    struct Vec2f
+    {
+        float x, y;
+    };
+
     struct Vec3f
     {
         float x, y, z;
@@ -68,6 +73,7 @@ namespace parser
         int material_id;
         std::vector<Face> faces;
         std::string transformations;
+        std::vector<double> transformation_matrix;
     };
 
     struct Triangle
@@ -76,6 +82,7 @@ namespace parser
         int material_id;
         Face indices;
         std::string transformations;
+        std::vector<double> transformation_matrix;
     };
 
     struct Sphere
@@ -85,6 +92,7 @@ namespace parser
         int center_vertex_id;
         float radius;
         std::string transformations;
+        std::vector<double> transformation_matrix;
     };
 
     struct Rotation

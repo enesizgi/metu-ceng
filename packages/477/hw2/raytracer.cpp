@@ -3,6 +3,9 @@
 #include <cmath>
 #include <thread>
 #include <mutex>
+#include <algorithm>
+#include <string>
+#include <cmath>
 
 #include "parser.h"
 #include "math.h"
@@ -555,10 +558,113 @@ float threadCounter, float numberofThreads,Camera cam, Scene scene) {
 	
 }
 
+void Identity (std::vector<double>& r) {
+	if (r.size() != 16)
+		r.resize(16);
+	r[0] = 1; r[1] = 0; r[2] = 0; r[3] = 0;
+	r[4] = 0; r[5] = 1; r[6] = 0; r[7] = 0;
+	r[8] = 0; r[9] = 0; r[10] = 1; r[11] = 0;
+	r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+}
+
+void Translate (Vec3f& t, std::vector<double>& r) {
+	if (r.size() != 16)
+		r.resize(16);
+	r[0] = 1; r[1] = 0; r[2] = 0; r[3] = t.x;
+	r[4] = 0; r[5] = 1; r[6] = 0; r[7] = t.y;
+	r[8] = 0; r[9] = 0; r[10] = 1; r[11] = t.z;
+	r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+}
+
+void Rotate (Rotation& rotation, std::vector<double>& r) {
+	if (r.size() != 16)
+		r.resize(16);
+
+	float sinr = std::sin(rotation.angle);
+	float cosr = std::cos(rotation.angle);
+	std::vector<double> v1(16);
+	std::vector<double> inv_v1(16);
+	Vec3f t1,inv_t1;
+	t1.x = rotation.x; t1.y = rotation.y; t1.z = rotation.z;
+	inv_t1.x = -rotation.x; inv_t1.y = -rotation.y; inv_t1.z = -rotation.z;
+	Translate(t1,v1);
+	Translate(inv_t1,inv_v1);
+
+
+
+	r[0] = 1; r[1] = 0; r[2] = 0; r[3] = 0;
+	r[4] = 0; r[5] = 1; r[6] = 0; r[7] = 0;
+	r[8] = 0; r[9] = 0; r[10] = 1; r[11] = 0;
+	r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+
+	// Tam değil
+	// plane'e göre rotation alınması gerekiyor sanırım.
+
+}
+
+void Scale (Vec3f& s, std::vector<double>& r) {
+	if (r.size() != 16)
+		r.resize(16);
+	r[0] = s.x; r[1] = 0; r[2] = 0; r[3] = 0;
+	r[4] = 0; r[5] = s.y; r[6] = 0; r[7] = 0;
+	r[8] = 0; r[9] = 0; r[10] = s.z; r[11] = 0;
+	r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+}
+
+
+
 int main(int argc, char* argv[])
 {
     parser::Scene scene;
     scene.loadFromXml(argv[1]);
+
+	std::vector<std::string> transforms;
+	for (auto mesh : scene.meshes) {
+
+		std::string temp = "";
+		for (char i : mesh.transformations) {
+			
+			if (i == ' ') {
+				transforms.push_back(temp);
+				temp = "";
+			}
+			else {
+				temp += i;
+			}
+		}
+		transforms.push_back(temp);
+	}
+
+	std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
+	Identity(result);
+	for (auto i : transforms) {
+		int temp = std::stoi(i.substr(1,i.size())); // transform id'yi str'den int'e çeviriyor.
+
+		if (i[0] == 't') { // translation
+			std::vector<double> m2;
+			std::vector<double> m1(16);
+			m2 = result;
+			Translate(scene.translations[temp-1],m1);
+			matrixMult(m1,m2,result);
+		}
+
+		else if (i[0] == 'r') { // rotation
+			scene.rotations[temp-1];
+		}
+
+		else if (i[0] == 's') { // scaling
+			
+		}
+	}
+
+	// aynı işlem triangle ve sphere için de yapılacak.
+
+	// transformationların tamamı intersect fonksiyonlarından önce uygulanacak.
+
+	// kamera transformationı da lazım sanırım.
+
+	//scene.vertex_data[scene.triangles[0].indices.v2_id - 1];
+	
 
 	for(std::vector<Camera>::iterator cam = scene.cameras.begin();cam != scene.cameras.end();cam++){
 		int width = (*cam).image_width;
