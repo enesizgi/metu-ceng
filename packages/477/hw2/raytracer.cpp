@@ -704,7 +704,8 @@ int main(int argc, char* argv[])
 				temp += i;
 			}
 		}
-		transforms.push_back(temp);
+		if (temp != "")
+			transforms.push_back(temp);
 
 		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
 		Identity(result);
@@ -804,6 +805,7 @@ int main(int argc, char* argv[])
 
 			else if (i[0] == 's') { // scaling
 				Scale(scene.scalings[temp-1],m1);
+				sphere.radius *= scene.scalings[temp-1].x;
 			}
 
 			matrixMult(m1,m2,result);
@@ -812,6 +814,13 @@ int main(int argc, char* argv[])
 		sphere.transformation_matrix = result;
 
 		sphere.center = scene.vertex_data[sphere.center_vertex_id-1];
+
+		std::vector<double> v1{sphere.center.x,sphere.center.y,sphere.center.z,1};
+		std::vector<double> v2(4);
+		matrixMult(sphere.transformation_matrix,v1,v2);
+		sphere.center.x = v2[0];
+		sphere.center.y = v2[1];
+		sphere.center.z = v2[2];
 
 	}
 
@@ -831,7 +840,8 @@ int main(int argc, char* argv[])
 				temp += i;
 			}
 		}
-		transforms.push_back(temp);
+		if (temp != "")
+			transforms.push_back(temp);
 
 		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
 		Identity(result);
@@ -874,11 +884,6 @@ int main(int argc, char* argv[])
 
 	}
 
-	// transformationların tamamı intersect fonksiyonlarından önce uygulanacak.
-
-	// kamera transformationı da lazım sanırım.
-
-	//scene.vertex_data[scene.triangles[0].indices.v2_id - 1];
 	
 
 	for(std::vector<Camera>::iterator cam = scene.cameras.begin();cam != scene.cameras.end();cam++){
