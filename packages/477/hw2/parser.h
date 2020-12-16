@@ -67,15 +67,6 @@ namespace parser
         int v2_id;
     };
 
-    struct Mesh
-    {
-        int texture_id;
-        int material_id;
-        std::vector<Face> faces;
-        std::string transformations;
-        std::vector<double> transformation_matrix;
-    };
-
     struct Triangle
     {
         int texture_id;
@@ -83,6 +74,17 @@ namespace parser
         Face indices;
         std::string transformations;
         std::vector<double> transformation_matrix;
+        std::vector<Vec3f> vertices;
+    };
+
+    struct Mesh
+    {
+        int texture_id;
+        int material_id;
+        std::vector<Face> faces;
+        std::string transformations;
+        std::vector<double> transformation_matrix;
+        std::vector<Triangle> m_triangles;
     };
 
     struct Sphere
@@ -90,6 +92,7 @@ namespace parser
         int texture_id;
         int material_id;
         int center_vertex_id;
+        Vec3f center;
         float radius;
         std::string transformations;
         std::vector<double> transformation_matrix;

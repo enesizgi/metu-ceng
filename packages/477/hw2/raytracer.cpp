@@ -148,7 +148,8 @@ double intersectSphere(Ray const &r,Sphere const &s,Scene const &scene){
     double A,B,C,delta;
     Vec3f center;
     double radius,t,t1,t2;
-    center = scene.vertex_data[s.center_vertex_id-1];
+    //center = scene.vertex_data[s.center_vertex_id-1];
+	center = s.center;
     radius = s.radius;
 
     C = (r.a.x-center.x)*(r.a.x-center.x)+(r.a.y-center.y)*(r.a.y-center.y)+(r.a.z-center.z)*(r.a.z-center.z)-radius*radius;
@@ -194,9 +195,14 @@ double intersectTriangle(Ray const &r,Triangle const &tr,Scene const &scene){
 	double dd;
 	Vec3f ma,mb,mc;
 
+	/*
 	ma = scene.vertex_data[tr.indices.v0_id-1];
 	mb = scene.vertex_data[tr.indices.v1_id-1];
 	mc = scene.vertex_data[tr.indices.v2_id-1];
+	*/
+	ma = tr.vertices[0];
+	mb = tr.vertices[1];
+	mc = tr.vertices[2];
 	
 	a = ma.x-mb.x;
 	b = ma.y-mb.y;
@@ -324,20 +330,20 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 	double t_face = __FLT_MAX__;
 	double closest_face = -1;
 
+
 	for(int k = 0; k<scene.meshes.size(); k++){
 		
 
-		int size_f = scene.meshes[k].faces.size();
-		
-
-		for(int l = 0; l<size_f; l++){
+		for(int l = 0; l<scene.meshes[k].faces.size(); l++){
 			
 			
 			double t;
-			Triangle tr;
+			Triangle tr = scene.meshes[k].m_triangles[l];
+			/*
 			tr.indices.v0_id = scene.meshes[k].faces[l].v0_id;
 			tr.indices.v1_id = scene.meshes[k].faces[l].v1_id;
 			tr.indices.v2_id = scene.meshes[k].faces[l].v2_id;
+			*/
 
 			t = intersectTriangle(ray,tr,scene);
 			if(t>0 && t<t_face){
@@ -365,7 +371,8 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 		x = add(ray.a,mult(ray.b,t_min));
 		if(t_min == t_s){
 			
-			Vec3f center = scene.vertex_data[scene.spheres[closest_s].center_vertex_id-1];
+			//Vec3f center = scene.vertex_data[scene.spheres[closest_s].center_vertex_id-1];
+			Vec3f center = scene.spheres[closest_s].center;
 			/*
 			std::vector<double> hom_center{center.x,center.y,center.z,1};
 			std::vector<double> hom2_center(4);
@@ -382,9 +389,14 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			Vec3f a, b, c, b_a, c_b;
 			tr = scene.triangles[closest_tr];
 			//scene.triangles[closest_tr].transformation_matrix
+			/*
 			a = scene.vertex_data[tr.indices.v0_id-1];
 			b = scene.vertex_data[tr.indices.v1_id-1];
 			c = scene.vertex_data[tr.indices.v2_id-1];
+			*/
+			a = tr.vertices[0];
+			b = tr.vertices[1];
+			c = tr.vertices[2];
 
 			b_a = add(b, mult(a, -1));
 			c_b = add(c, mult(b, -1));
@@ -397,10 +409,17 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			Face face;
 			Vec3f a, b, c, b_a, c_b;
 			face = scene.meshes[closest_mesh].faces[closest_face];
+			
 			//scene.meshes[closest_mesh].transformation_matrix
+			/*
 			a = scene.vertex_data[face.v0_id-1];
 			b = scene.vertex_data[face.v1_id-1];
 			c = scene.vertex_data[face.v2_id-1];
+			*/
+
+			a = scene.meshes[closest_mesh].m_triangles[closest_face].vertices[0];
+			b = scene.meshes[closest_mesh].m_triangles[closest_face].vertices[1];
+			c = scene.meshes[closest_mesh].m_triangles[closest_face].vertices[2];
 			 
 			b_a = add(b, mult(a, -1));
 			c_b = add(c, mult(b, -1));
@@ -454,16 +473,17 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 		continue;
 
 	for(int k = 0; k<scene.meshes.size(); k++){
-		int size_f = scene.meshes[k].faces.size();
 		
 		double t2 = -1;
-		for(int l = 0; l<size_f; l++){
+		for(int l = 0; l<scene.meshes[k].faces.size(); l++){
 						
 			double t;
-			Triangle tr;
+			Triangle tr = scene.meshes[k].m_triangles[l];
+			/*
 			tr.indices.v0_id = scene.meshes[k].faces[l].v0_id;
 			tr.indices.v1_id = scene.meshes[k].faces[l].v1_id;
 			tr.indices.v2_id = scene.meshes[k].faces[l].v2_id;
+			*/
 
 			t = intersectTriangle(shadow,tr,scene);
 			if (t < 0 || t > 1)
@@ -666,12 +686,15 @@ int main(int argc, char* argv[])
 
 
 	// mesh icin
-	for (auto mesh : scene.meshes) {
+	for (int j = 0;j<scene.meshes.size();j++) {
+
+		auto& mesh = scene.meshes[j];
 
 		std::vector<std::string> transforms;
 		std::string temp = "";
 
-		for (auto i : mesh.transformations) {
+		for (int k = 0;k<mesh.transformations.size();k++) {
+			auto& i = mesh.transformations[k];
 			
 			if (i == ' ') {
 				transforms.push_back(temp);
@@ -685,7 +708,8 @@ int main(int argc, char* argv[])
 
 		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
 		Identity(result);
-		for (auto i : transforms) {
+		for (int k = 0;k<transforms.size();k++) {
+			auto& i = transforms[k];
 			int temp = std::stoi(i.substr(1,i.size())); // transform id'yi str'den int'e çeviriyor.
 
 			std::vector<double> m2;
@@ -707,17 +731,47 @@ int main(int argc, char* argv[])
 			matrixMult(m1,m2,result);
 		}
 
-		mesh.transformation_matrix = result;
+		mesh.transformation_matrix = result ;
+
+		for (int k = 0;k<mesh.faces.size();k++) {
+			auto& i = mesh.faces[k];
+			Triangle tr;
+			tr.vertices.push_back(scene.vertex_data[i.v0_id-1]);
+			tr.vertices.push_back(scene.vertex_data[i.v1_id-1]);
+			tr.vertices.push_back(scene.vertex_data[i.v2_id-1]);
+			mesh.m_triangles.push_back(tr);
+			/*
+			mesh.m_triangles.push_back(scene.vertex_data[i.v0_id-1]);
+			mesh.m_triangles.push_back(scene.vertex_data[i.v1_id-1]);
+			mesh.m_triangles.push_back(scene.vertex_data[i.v2_id-1]);*/
+		}
+
+		for (int k = 0;k<mesh.m_triangles.size();k++) {
+			auto& i = mesh.m_triangles[k];
+
+			for (int l = 0;l<i.vertices.size();l++) {
+				auto& vertex = i.vertices[l];
+				std::vector<double> v1{vertex.x,vertex.y,vertex.z,1};
+				std::vector<double> v2(4);
+				matrixMult(mesh.transformation_matrix,v1,v2);
+				vertex.x = v2[0];
+				vertex.y = v2[1];
+				vertex.z = v2[2];
+			}
+
+		}
 
 	}
 
 	//sphere icin
-	for (auto sphere : scene.spheres) {
+	for (int j = 0;j<scene.spheres.size();j++) {
+		auto& sphere = scene.spheres[j];
 
 		std::vector<std::string> transforms;
 		std::string temp = "";
 
-		for (auto i : sphere.transformations) {
+		for (int k = 0;k<sphere.transformations.size();k++) {
+			auto& i = sphere.transformations[k];
 			
 			if (i == ' ') {
 				transforms.push_back(temp);
@@ -732,7 +786,8 @@ int main(int argc, char* argv[])
 
 		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
 		Identity(result);
-		for (auto i : transforms) {
+		for (int k = 0;k<transforms.size();k++) {
+			auto& i = transforms[k];
 			int temp = std::stoi(i.substr(1,i.size())); // transform id'yi str'den int'e çeviriyor.
 
 			std::vector<double> m2;
@@ -756,15 +811,17 @@ int main(int argc, char* argv[])
 
 		sphere.transformation_matrix = result;
 
+		sphere.center = scene.vertex_data[sphere.center_vertex_id-1];
+
 	}
 
 	//triangle icin
-	for (auto triangle : scene.triangles) {
+	for (auto& triangle : scene.triangles) {
 
 		std::vector<std::string> transforms;
 		std::string temp = "";
 
-		for (auto i : triangle.transformations) {
+		for (auto &i : triangle.transformations) {
 			
 			if (i == ' ') {
 				transforms.push_back(temp);
@@ -778,7 +835,7 @@ int main(int argc, char* argv[])
 
 		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
 		Identity(result);
-		for (auto i : transforms) {
+		for (auto &i : transforms) {
 			int temp = std::stoi(i.substr(1,i.size())); // transform id'yi str'den int'e çeviriyor.
 
 			std::vector<double> m2;
@@ -801,6 +858,19 @@ int main(int argc, char* argv[])
 		}
 
 		triangle.transformation_matrix = result;
+
+		triangle.vertices.push_back(scene.vertex_data[triangle.indices.v0_id-1]);
+		triangle.vertices.push_back(scene.vertex_data[triangle.indices.v1_id-1]);
+		triangle.vertices.push_back(scene.vertex_data[triangle.indices.v2_id-1]);
+
+		for (auto &i : triangle.vertices) {
+			std::vector<double> v1{i.x,i.y,i.z,1};
+			std::vector<double> v2(4);
+			matrixMult(triangle.transformation_matrix,v1,v2);
+			i.x = v2[0];
+			i.y = v2[1];
+			i.z = v2[2];
+		}
 
 	}
 
