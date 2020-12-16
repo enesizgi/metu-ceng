@@ -95,6 +95,15 @@ Vec3f mult(Vec3f const& a, double const &c)
 	return tmp;
 }
 
+Vec4f homogenize(Vec3f& v1) {
+	Vec4f v2;
+	v2.x = v1.x;
+	v2.y = v1.y;
+	v2.z = v1.z;
+	v2.w = 1;
+	return v2;
+}
+
 double distance(Vec3f const &a, Vec3f const &b)
 {
     return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)+(a.z-b.z)*(a.z-b.z));
@@ -283,9 +292,8 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 
 	double t_s = __FLT_MAX__;
 	int closest_s = -1;
-	int size_s = scene.spheres.size();
 	
-	for(int k=0; k<size_s;k++ ){
+	for(int k=0; k<scene.spheres.size();k++ ){
 		double t;
 		t = intersectSphere(ray,scene.spheres[k],scene);
 		if(t>0){
@@ -299,9 +307,8 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 
 	double t_tr = __FLT_MAX__;
 	int closest_tr = -1;
-	int size_tr =scene.triangles.size();
 	
-	for(int k= 0;k<size_tr; k++ ){
+	for(int k= 0;k<scene.triangles.size(); k++ ){
 		double t;
 		t = intersectTriangle(ray,scene.triangles[k],scene);
 		if(t>0 && t<t_tr){
@@ -314,11 +321,10 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 
 	double t_mesh = __FLT_MAX__;
 	int closest_mesh = -1;
-	int size_m = scene.meshes.size();
 	double t_face = __FLT_MAX__;
 	double closest_face = -1;
 
-	for(int k = 0; k<size_m; k++){
+	for(int k = 0; k<scene.meshes.size(); k++){
 		
 
 		int size_f = scene.meshes[k].faces.size();
@@ -360,7 +366,11 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 		if(t_min == t_s){
 			
 			Vec3f center = scene.vertex_data[scene.spheres[closest_s].center_vertex_id-1];
-
+			/*
+			std::vector<double> hom_center{center.x,center.y,center.z,1};
+			std::vector<double> hom2_center(4);
+			matrixMult(scene.spheres[closest_s].transformation_matrix,hom_center,hom2_center);
+			*/
 			center =mult(center,-1);
 			normal = add(x,center);
 			normal = normalize(normal);
@@ -368,11 +378,14 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 		}
 		if(t_min == t_tr){
 			Triangle tr;
+			
 			Vec3f a, b, c, b_a, c_b;
 			tr = scene.triangles[closest_tr];
+			//scene.triangles[closest_tr].transformation_matrix
 			a = scene.vertex_data[tr.indices.v0_id-1];
 			b = scene.vertex_data[tr.indices.v1_id-1];
 			c = scene.vertex_data[tr.indices.v2_id-1];
+
 			b_a = add(b, mult(a, -1));
 			c_b = add(c, mult(b, -1));
 			normal = cross(b_a, c_b);
@@ -384,9 +397,11 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			Face face;
 			Vec3f a, b, c, b_a, c_b;
 			face = scene.meshes[closest_mesh].faces[closest_face];
+			//scene.meshes[closest_mesh].transformation_matrix
 			a = scene.vertex_data[face.v0_id-1];
 			b = scene.vertex_data[face.v1_id-1];
 			c = scene.vertex_data[face.v2_id-1];
+			 
 			b_a = add(b, mult(a, -1));
 			c_b = add(c, mult(b, -1));
 			normal = cross(b_a, c_b);
@@ -404,10 +419,8 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 	shadow.a = add(x,mult(normal,scene.shadow_ray_epsilon));
 	
 	double t1 = -1;
-	
-	int size_s = scene.spheres.size();
 
-	for(int k=0; k<size_s;k++ ){
+	for(int k=0; k<scene.spheres.size();k++ ){
 
 		double t;
 		t = intersectSphere(shadow,scene.spheres[k],scene);
@@ -423,10 +436,8 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 
 	if (t1 != -1) 
 		continue;
-
-	int size_tr = scene.triangles.size();
 	
-	for(int k= 0;k<size_tr; k++ ){
+	for(int k= 0;k<scene.triangles.size(); k++ ){
 		double t;
 		t = intersectTriangle(shadow,scene.triangles[k],scene);
 		if (t < 0 || t > 1)
@@ -441,10 +452,8 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 
 	if (t1 != -1) 
 		continue;
-	
-	int size_m = scene.meshes.size();
 
-	for(int k = 0; k<size_m; k++){
+	for(int k = 0; k<scene.meshes.size(); k++){
 		int size_f = scene.meshes[k].faces.size();
 		
 		double t2 = -1;
@@ -639,6 +648,7 @@ void Rotate (Rotation& rotation, std::vector<double>& r) {
 void Scale (Vec3f& s, std::vector<double>& r) {
 	if (r.size() != 16)
 		r.resize(16);
+
 	r[0] = s.x; r[1] = 0; r[2] = 0; r[3] = 0;
 	r[4] = 0; r[5] = s.y; r[6] = 0; r[7] = 0;
 	r[8] = 0; r[9] = 0; r[10] = s.z; r[11] = 0;
@@ -717,7 +727,8 @@ int main(int argc, char* argv[])
 				temp += i;
 			}
 		}
-		transforms.push_back(temp);
+		if (temp != "")
+			transforms.push_back(temp);
 
 		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
 		Identity(result);
