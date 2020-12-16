@@ -44,7 +44,7 @@ void matrixMult (std::vector<double>& m1, std::vector<double>& m2, std::vector<d
     }
 }
 
-void invert(double m[], double inv[])
+void invert(std::vector<double>& m, std::vector<double>& inv)
 {
     //
     // This code is taken from the GLU library 

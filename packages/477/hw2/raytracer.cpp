@@ -580,25 +580,59 @@ void Rotate (Rotation& rotation, std::vector<double>& r) {
 	if (r.size() != 16)
 		r.resize(16);
 
-	float sinr = std::sin(rotation.angle);
-	float cosr = std::cos(rotation.angle);
-	std::vector<double> v1(16);
-	std::vector<double> inv_v1(16);
-	Vec3f t1,inv_t1;
-	t1.x = rotation.x; t1.y = rotation.y; t1.z = rotation.z;
-	inv_t1.x = -rotation.x; inv_t1.y = -rotation.y; inv_t1.z = -rotation.z;
-	Translate(t1,v1);
-	Translate(inv_t1,inv_v1);
+	Vec3f u,v,w;
+	u.x = rotation.x; u.y = rotation.y; u.z = rotation.z;
+	u = normalize(u);
 
+	float temp = GetMin(GetMin(u.x,u.y),u.z);
 
+	if (temp == u.x) {
+		v.x = 0;
+		v.y = -u.z;
+		v.z = u.y;
+	}
 
-	r[0] = 1; r[1] = 0; r[2] = 0; r[3] = 0;
-	r[4] = 0; r[5] = 1; r[6] = 0; r[7] = 0;
-	r[8] = 0; r[9] = 0; r[10] = 1; r[11] = 0;
-	r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+	else if (temp == u.y) {
+		v.x = -u.z;
+		v.y = 0;
+		v.z = u.x;
+	}
 
-	// Tam değil
-	// plane'e göre rotation alınması gerekiyor sanırım.
+	else if (temp == u.z) {
+		v.x = -u.y;
+		v.y = u.x;
+		v.z = 0;
+	}
+
+	w = cross(u,v);
+	v = normalize(v);
+	w = normalize(w);
+
+	std::vector<double> m(16);
+	std::vector<double> inv_m(16);
+
+	m[0] = u.x; m[1] = u.y; m[2] = u.z; m[3] = 0;
+	m[4] = v.x; m[5] = v.y; m[6] = v.z; m[7] = 0;
+	m[8] = w.x; m[9] = w.y; m[10] = w.z; m[11] = 0;
+	m[12] = 0; m[13] = 0; m[14] = 0; m[15] = 1;
+
+	invert(m,inv_m);
+
+	std::vector<double> r_x(16);
+	float sinr = std::sin((M_PI*rotation.angle)/180);
+	float cosr = std::cos((M_PI*rotation.angle)/180);
+	
+	r_x[0] = 1; r_x[1] = 0; r_x[2] = 0; r_x[3] = 0;
+	r_x[4] = 0; r_x[5] = cosr; r_x[6] = -sinr; r_x[7] = 0;
+	r_x[8] = 0; r_x[9] = sinr; r_x[10] = cosr; r_x[11] = 0;
+	r_x[12] = 0; r_x[13] = 0; r_x[14] = 0; r_x[15] = 1;
+
+	matrixMult(r_x,m,r);
+
+	std::vector<double> tmp(16);
+	tmp = r;
+
+	matrixMult(inv_m,tmp,r);
 
 }
 
@@ -609,6 +643,8 @@ void Scale (Vec3f& s, std::vector<double>& r) {
 	r[4] = 0; r[5] = s.y; r[6] = 0; r[7] = 0;
 	r[8] = 0; r[9] = 0; r[10] = s.z; r[11] = 0;
 	r[12] = 0; r[13] = 0; r[14] = 0; r[15] = 1;
+
+	// doğru olmayabilir kontrol et
 }
 
 
@@ -618,11 +654,14 @@ int main(int argc, char* argv[])
     parser::Scene scene;
     scene.loadFromXml(argv[1]);
 
-	std::vector<std::string> transforms;
+
+	// mesh icin
 	for (auto mesh : scene.meshes) {
 
+		std::vector<std::string> transforms;
 		std::string temp = "";
-		for (char i : mesh.transformations) {
+
+		for (auto i : mesh.transformations) {
 			
 			if (i == ' ') {
 				transforms.push_back(temp);
@@ -633,31 +672,126 @@ int main(int argc, char* argv[])
 			}
 		}
 		transforms.push_back(temp);
-	}
 
-	std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
-	Identity(result);
-	for (auto i : transforms) {
-		int temp = std::stoi(i.substr(1,i.size())); // transform id'yi str'den int'e çeviriyor.
+		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
+		Identity(result);
+		for (auto i : transforms) {
+			int temp = std::stoi(i.substr(1,i.size())); // transform id'yi str'den int'e çeviriyor.
 
-		if (i[0] == 't') { // translation
 			std::vector<double> m2;
 			std::vector<double> m1(16);
 			m2 = result;
-			Translate(scene.translations[temp-1],m1);
+
+			if (i[0] == 't') { // translation
+				Translate(scene.translations[temp-1],m1);
+			} 
+
+			else if (i[0] == 'r') { // rotation
+				Rotate(scene.rotations[temp-1],m1);
+			}
+
+			else if (i[0] == 's') { // scaling
+				Scale(scene.scalings[temp-1],m1);
+			}
+
 			matrixMult(m1,m2,result);
 		}
 
-		else if (i[0] == 'r') { // rotation
-			scene.rotations[temp-1];
-		}
+		mesh.transformation_matrix = result;
 
-		else if (i[0] == 's') { // scaling
-			
-		}
 	}
 
-	// aynı işlem triangle ve sphere için de yapılacak.
+	//sphere icin
+	for (auto sphere : scene.spheres) {
+
+		std::vector<std::string> transforms;
+		std::string temp = "";
+
+		for (auto i : sphere.transformations) {
+			
+			if (i == ' ') {
+				transforms.push_back(temp);
+				temp = "";
+			}
+			else {
+				temp += i;
+			}
+		}
+		transforms.push_back(temp);
+
+		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
+		Identity(result);
+		for (auto i : transforms) {
+			int temp = std::stoi(i.substr(1,i.size())); // transform id'yi str'den int'e çeviriyor.
+
+			std::vector<double> m2;
+			std::vector<double> m1(16);
+			m2 = result;
+
+			if (i[0] == 't') { // translation
+				Translate(scene.translations[temp-1],m1);
+			}
+
+			else if (i[0] == 'r') { // rotation
+				Rotate(scene.rotations[temp-1],m1);
+			}
+
+			else if (i[0] == 's') { // scaling
+				Scale(scene.scalings[temp-1],m1);
+			}
+
+			matrixMult(m1,m2,result);
+		}
+
+		sphere.transformation_matrix = result;
+
+	}
+
+	//triangle icin
+	for (auto triangle : scene.triangles) {
+
+		std::vector<std::string> transforms;
+		std::string temp = "";
+
+		for (auto i : triangle.transformations) {
+			
+			if (i == ' ') {
+				transforms.push_back(temp);
+				temp = "";
+			}
+			else {
+				temp += i;
+			}
+		}
+		transforms.push_back(temp);
+
+		std::vector<double> result(16) ; // transformation matris hesaplanıp resultda tutulacak.
+		Identity(result);
+		for (auto i : transforms) {
+			int temp = std::stoi(i.substr(1,i.size())); // transform id'yi str'den int'e çeviriyor.
+
+			std::vector<double> m2;
+			std::vector<double> m1(16);
+			m2 = result;
+
+			if (i[0] == 't') { // translation
+				Translate(scene.translations[temp-1],m1);
+			}
+
+			else if (i[0] == 'r') { // rotation
+				Rotate(scene.rotations[temp-1],m1);
+			}
+
+			else if (i[0] == 's') { // scaling
+				Scale(scene.scalings[temp-1],m1);
+			}
+
+			matrixMult(m1,m2,result);
+		}
+
+		triangle.transformation_matrix = result;
+
+	}
 
 	// transformationların tamamı intersect fonksiyonlarından önce uygulanacak.
 
