@@ -113,6 +113,7 @@ namespace parser
         int width;
         int height;
         unsigned char *image;
+        std::vector<std::vector<Vec3f>> image2;
     };
 
     struct Scene

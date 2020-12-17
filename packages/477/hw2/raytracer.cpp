@@ -20,6 +20,7 @@ std::mutex m2;
 unsigned char* image;
 
 int asdfg = 0;
+int teest = 0;
 
 using namespace parser;
 typedef unsigned char RGB[3];
@@ -189,7 +190,7 @@ double intersectSphere(Ray const &r,Sphere const &s,Scene const &scene){
 }
 
 
-double intersectTriangle(Ray const &r,Triangle &tr,Scene &scene){
+double intersectTriangle(Ray const &r,Triangle &tr,Scene &scene, int maxDepth){
 	asdfg++;
 
 	double  a,b,c,d,e,f,g,h,i,j,k,l;
@@ -245,8 +246,11 @@ double intersectTriangle(Ray const &r,Triangle &tr,Scene &scene){
 	beta = (j*eimhf+k*gfmdi+l*dhmeg)/M;
 	
 	if (beta<0 || beta>(1-gamma)) return -1;
+/*
+	if (maxDepth + 1 == scene.max_recursion_depth)
+		teest++;
+		return t;*/
 
-	/*
 	if (!scene.tex_coord_data.size())
 		return t;
 
@@ -258,6 +262,10 @@ double intersectTriangle(Ray const &r,Triangle &tr,Scene &scene){
 	v1 = scene.tex_coord_data[tr.indices.v0_id-1];
 	v2 = scene.tex_coord_data[tr.indices.v1_id-1];
 	v3 = scene.tex_coord_data[tr.indices.v2_id-1];
+/*
+	v1 = scene.tex_coord_data[1];
+	v2 = scene.tex_coord_data[2];
+	v3 = scene.tex_coord_data[3];*/
 	
 
 	tr.u = v1.x + beta*(v2.x - v1.x) + gamma*(v3.x - v1.x);
@@ -280,8 +288,8 @@ double intersectTriangle(Ray const &r,Triangle &tr,Scene &scene){
 	}
 
 	Vec2f ij;
-	ij.x = tr.u * texture.width;
-	ij.y = tr.v * texture.height;
+	ij.x = tr.u * (texture.width-1);
+	ij.y = tr.v * (texture.height-1);
 	Vec3f C;
 	if (texture.interpolation == "nearest") {
 		int x = std::round(ij.x);
@@ -298,21 +306,25 @@ double intersectTriangle(Ray const &r,Triangle &tr,Scene &scene){
 		int q = std::floor(ij.y);
 		float dx = ij.x-p;
 		float dy = ij.y-q;
+		
+		C.x = texture.image[3*q*texture.width + 3*p]*(1-dx)*(1-dy) +
+		texture.image[3*q*texture.width + 3*(p+1)]*dx*(1-dy) +
+		texture.image[3*(q+1)*texture.width + 3*p]*(1-dx)*dy +
+		texture.image[3*(q+1)*texture.width + 3*(p+1)]*dx*dy;
 
-		C.x = texture.image[3*p*texture.width + 3*q]*(1-dx)*(1-dy) +
-		texture.image[3*(p+1)*texture.width + 3*q]*dx*(1-dy) +
-		texture.image[3*p*texture.width + 3*(q+1)]*(1-dx)*dy +
-		texture.image[3*(p+1)*texture.width + 3*(q+1)]*dx*dy;
+		C.y = texture.image[3*q*texture.width + 3*p+1]*(1-dx)*(1-dy) +
+		texture.image[3*q*texture.width + 3*(p+1)+1]*dx*(1-dy) +
+		texture.image[3*(q+1)*texture.width + 3*p+1]*(1-dx)*dy +
+		texture.image[3*(q+1)*texture.width + 3*(p+1)+1]*dx*dy;
 
-		C.y = texture.image[3*p*texture.width + 3*q+1]*(1-dx)*(1-dy) +
-		texture.image[3*(p+1)*texture.width + 3*q+1]*dx*(1-dy) +
-		texture.image[3*p*texture.width + 3*(q+1)+1]*(1-dx)*dy +
-		texture.image[3*(p+1)*texture.width + 3*(q+1)+1]*dx*dy;
-
-		C.z = texture.image[3*p*texture.width + 3*q+2]*(1-dx)*(1-dy) +
-		texture.image[3*(p+1)*texture.width + 3*q+2]*dx*(1-dy) +
-		texture.image[3*p*texture.width + 3*(q+1)+2]*(1-dx)*dy +
-		texture.image[3*(p+1)*texture.width + 3*(q+1)+2]*dx*dy;
+		C.z = texture.image[3*q*texture.width + 3*p+2]*(1-dx)*(1-dy) +
+		texture.image[3*q*texture.width + 3*(p+1)+2]*dx*(1-dy) +
+		texture.image[3*(q+1)*texture.width + 3*p+2]*(1-dx)*dy +
+		texture.image[3*(q+1)*texture.width + 3*(p+1)+2]*dx*dy;
+		/*
+		C.x = 50;
+		C.y = 50;
+		C.z = 50;*/
 
 	}
 
@@ -323,10 +335,11 @@ double intersectTriangle(Ray const &r,Triangle &tr,Scene &scene){
 	}
 	else if (decalMode == "blend_kd") {
 		diffuse = add(diffuse,C);
+		diffuse = mult(diffuse,0.5);
 	}
 
 	
-	*/
+	
 
 
 	
@@ -403,7 +416,7 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 	
 	for(int k= 0;k<scene.triangles.size(); k++ ){
 		double t;
-		t = intersectTriangle(ray,scene.triangles[k],scene);
+		t = intersectTriangle(ray,scene.triangles[k],scene,maxDepth);
 		if(t>0 && t<t_tr){
 			
 			t_tr = t;
@@ -425,15 +438,17 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			
 			
 			double t;
-			Triangle tr = scene.meshes[k].m_triangles[l];
-			tr.indices = scene.meshes[k].faces[l];
+			auto& mesh = scene.meshes[k];
+			auto &tr = mesh.m_triangles[l];
+			tr.indices = mesh.faces[l];
+			
 			/*
 			tr.indices.v0_id = scene.meshes[k].faces[l].v0_id;
 			tr.indices.v1_id = scene.meshes[k].faces[l].v1_id;
 			tr.indices.v2_id = scene.meshes[k].faces[l].v2_id;
 			*/
 
-			t = intersectTriangle(ray,tr,scene);
+			t = intersectTriangle(ray,tr,scene,maxDepth);
 			if(t>0 && t<t_face){
 				t_face = t;
 				closest_face = l;
@@ -531,7 +546,7 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 	
 	for(int k= 0;k<scene.triangles.size(); k++ ){
 		double t;
-		t = intersectTriangle(shadow,scene.triangles[k],scene);
+		t = intersectTriangle(shadow,scene.triangles[k],scene,maxDepth);
 		if (t < 0 || t > 1)
 			continue;
 
@@ -558,7 +573,7 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 			tr.indices.v2_id = scene.meshes[k].faces[l].v2_id;
 			*/
 
-			t = intersectTriangle(shadow,tr,scene);
+			t = intersectTriangle(shadow,tr,scene,maxDepth);
 			if (t < 0 || t > 1)
 				continue;
 
@@ -773,6 +788,11 @@ int main(int argc, char* argv[])
 
 		read_jpeg(tmp, texture.image, w, h);
 
+		texture.image2.resize(w);
+		for (int i = 0;i<w;i++) {
+			texture.image2[i].resize(h);
+		}
+
 		texture.width = w;
 		texture.height = h;
 
@@ -831,13 +851,14 @@ int main(int argc, char* argv[])
 		for (int k = 0;k<mesh.faces.size();k++) {
 			auto& i = mesh.faces[k];
 			Triangle tr;
+			tr.material_id = mesh.material_id;
+			tr.texture_id = mesh.texture_id;
+			tr.indices = i;
 			tr.vertices.push_back(scene.vertex_data[i.v0_id-1]);
 			tr.vertices.push_back(scene.vertex_data[i.v1_id-1]);
 			tr.vertices.push_back(scene.vertex_data[i.v2_id-1]);
 			mesh.m_triangles.push_back(tr);
-			tr.material_id = mesh.material_id;
-			tr.texture_id = mesh.texture_id;
-			tr.indices = i;
+
 			/*
 			mesh.m_triangles.push_back(scene.vertex_data[i.v0_id-1]);
 			mesh.m_triangles.push_back(scene.vertex_data[i.v1_id-1]);
