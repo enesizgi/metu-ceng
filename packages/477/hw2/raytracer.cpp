@@ -116,6 +116,8 @@ double distance(Vec3f const &a, Vec3f const &b)
 }
 
 void get_cam_u(Camera &cam){
+	cam.gaze = normalize(cam.gaze);
+	cam.up = normalize(cam.up);
 	cam.u = cross(cam.gaze,cam.up);
 	cam.u = normalize(cam.u);
 }
@@ -150,7 +152,7 @@ Ray generateRay(int const& i, int const &j, Camera const &cam)
 	return tmp;
 }
 
-double intersectSphere(Ray const &r,Sphere const &s,Scene const &scene){
+double intersectSphere(Ray const &r,Sphere &s,Scene &scene){
     double A,B,C,delta;
     Vec3f center;
     double radius,t,t1,t2;
@@ -184,6 +186,105 @@ double intersectSphere(Ray const &r,Sphere const &s,Scene const &scene){
 		t = (t1 >= 0) ? t1 : -1.0f ;
 		
 	}
+
+	
+	if (s.texture_id <= 0)
+		return t;
+
+	Vec3f point = add(r.a,mult(r.b,t1));
+	point = add(mult(center,-1),point);
+	/*auto& u = s.uu;
+	auto& v = s.vv;
+	auto& w = s.ww;
+	std::vector<double> point4{point.x,point.y, point.z, 0 };
+	std::vector<double> m(16);
+	m[0] = u.x; m[1] = v.x; m[2] = w.x; m[3] = 0;
+	m[4] = u.y; m[5] = v.y; m[6] = w.y; m[7] = 0;
+	m[8] = u.z; m[9] = v.z; m[10] = w.z; m[11] = 0;
+	m[12] = 0; m[13] = 0; m[14] = 0; m[15] = 1;
+	std::vector<double> tmp = point4;
+	matrixMult(m,tmp,point4);
+	point.x = point4[0];
+	point.y = point4[1];
+	point.z = point4[2];
+*/
+
+	double teta = std::acos(point.y/radius);
+	double fi = std::atan2(point.z,point.x);
+	//double fi = std::atan(point.z/point.x);
+
+	s.u = (M_PI-fi)/(2*M_PI);
+	s.v = teta/M_PI;
+
+
+	auto& texture = scene.textures[s.texture_id-1];
+	auto& diffuse = scene.materials[s.material_id-1].diffuse;
+	auto& decalMode = texture.decalMode;
+	
+	if (texture.appearance == "clamp") {
+		s.u = s.u > 1 ? 1 : s.u ;
+		s.v = s.v > 1 ? 1 : s.v ;
+		s.u = s.u < 0 ? 0 : s.u ;
+		s.v = s.v < 0 ? 0 : s.v ;
+	}
+	else {
+		s.u = s.u - std::floor(s.u);
+		s.v = s.v - std::floor(s.v);
+	}
+
+	Vec2f ij;
+	ij.x = s.u * (texture.width-1);
+	ij.y = s.v * (texture.height-1);
+	Vec3f R;
+	if (texture.interpolation == "nearest") {
+		int x = std::round(ij.x);
+		int y = std::round(ij.y);
+
+		R.x = texture.image[3*y*texture.width + 3*x];
+		R.y = texture.image[3*y*texture.width + 3*x + 1];
+		R.z = texture.image[3*y*texture.width + 3*x + 2];
+
+
+	}
+	else {
+		int p = std::floor(ij.x);
+		int q = std::floor(ij.y);
+		float dx = ij.x-p;
+		float dy = ij.y-q;
+		
+		R.x = texture.image[3*q*texture.width + 3*p]*(1-dx)*(1-dy) +
+		texture.image[3*q*texture.width + 3*(p+1)]*dx*(1-dy) +
+		texture.image[3*(q+1)*texture.width + 3*p]*(1-dx)*dy +
+		texture.image[3*(q+1)*texture.width + 3*(p+1)]*dx*dy;
+
+		R.y = texture.image[3*q*texture.width + 3*p+1]*(1-dx)*(1-dy) +
+		texture.image[3*q*texture.width + 3*(p+1)+1]*dx*(1-dy) +
+		texture.image[3*(q+1)*texture.width + 3*p+1]*(1-dx)*dy +
+		texture.image[3*(q+1)*texture.width + 3*(p+1)+1]*dx*dy;
+
+		R.z = texture.image[3*q*texture.width + 3*p+2]*(1-dx)*(1-dy) +
+		texture.image[3*q*texture.width + 3*(p+1)+2]*dx*(1-dy) +
+		texture.image[3*(q+1)*texture.width + 3*p+2]*(1-dx)*dy +
+		texture.image[3*(q+1)*texture.width + 3*(p+1)+2]*dx*dy;
+
+	}
+
+	
+
+	if (decalMode == "replace_kd") {
+		R.x = R.x/255; R.y = R.y/255; R.z = R.z/255;
+		diffuse = mult(R,1);
+	}
+	else if (decalMode == "blend_kd") {
+		R.x = R.x/255; R.y = R.y/255; R.z = R.z/255;
+		diffuse = add(diffuse,R);
+		diffuse = mult(diffuse,0.5);
+	}
+	else {
+		s.r_all = 1;
+		s.R = mult(R,1);
+	}
+
 
 	return t;
 
@@ -470,10 +571,13 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 	if(t_s<t_min){
 		t_min = t_s;
 	}
+
+	int whatis = 0; //1 for sphere, 2 for triangle, 3 for mesh
+
 	if(t_min != __FLT_MAX__){
 		x = add(ray.a,mult(ray.b,t_min));
 		if(t_min == t_s){
-			
+			whatis = 1;
 			
 			Vec3f center = scene.spheres[closest_s].center;
 		
@@ -483,6 +587,7 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			mat = scene.materials[scene.spheres[closest_s].material_id-1];
 		}
 		if(t_min == t_tr){
+			whatis = 2;
 			Triangle tr;
 			
 			Vec3f a, b, c, b_a, c_b;
@@ -500,6 +605,7 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 		}
 		
 		if(t_min == t_mesh){
+			whatis = 3;
 			Face face;
 			Vec3f a, b, c, b_a, c_b;
 			face = scene.meshes[closest_mesh].faces[closest_face];
@@ -597,7 +703,26 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 	if (t1 != -1) 
 		continue;
 
-	Vec3f Ld = Diffuse_shading(mat.diffuse,normal,x,*light);
+	Vec3f Ld;
+	if (whatis == 1 && scene.spheres[closest_s].texture_id && scene.textures[scene.spheres[closest_s].texture_id-1].decalMode == "replace_all"){
+		Ld.x= scene.spheres[closest_s].R.x;
+		Ld.y= scene.spheres[closest_s].R.y;
+		Ld.z= scene.spheres[closest_s].R.z;
+	}
+	else if (whatis == 2 && scene.triangles[closest_tr].texture_id && scene.textures[scene.triangles[closest_tr].texture_id-1].decalMode == "replace_all"){
+		Ld.x = scene.triangles[closest_tr].R.x;
+		Ld.y = scene.triangles[closest_tr].R.y;
+		Ld.z = scene.triangles[closest_tr].R.z;
+	}	
+	else if (whatis == 3 && scene.meshes[closest_mesh].m_triangles[closest_face].texture_id && scene.textures[scene.meshes[closest_mesh].m_triangles[closest_face].texture_id - 1].decalMode == "replace_all"){
+		Ld.x = scene.meshes[closest_mesh].m_triangles[closest_face].R.x;
+		Ld.y = scene.meshes[closest_mesh].m_triangles[closest_face].R.y;
+		Ld.z = scene.meshes[closest_mesh].m_triangles[closest_face].R.z;
+	}		
+	else
+		Ld = Diffuse_shading(mat.diffuse,normal,x,*light);
+
+	//Vec3f Ld = Diffuse_shading(mat.diffuse,normal,x,*light);
 	Vec3f Ls = Specular_Shading(mat,normal,x,ray,*light);
 	La = add(La,add(Ld,Ls));
 }
@@ -615,6 +740,9 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 	mirror_ray.a = x;
 	mirror_ray.b = wr;
 
+	if (mat.mirror.x == 0 && mat.mirror.y == 0 && mat.mirror.z == 0) {
+		return La;
+	}
 
 	Lm = getColor(scene,maxDepth-1,mirror_ray);
 	Vec3f km = mat.mirror ;
@@ -1016,7 +1144,7 @@ int main(int argc, char* argv[])
 		numberofThreads;
 
 		std::vector<std::thread> threads;
-		/*
+		
 		for (int i = 0;i<numberofThreads;i++) {
 			
 			threads.push_back(std::thread(LoadImages,height,width,i,numberofThreads,*cam,scene));
@@ -1029,8 +1157,8 @@ int main(int argc, char* argv[])
 			}
 			//std::cout << "Thread " << i << " closing..." << "\n";
 		}
-		*/
-
+		
+		/*
 		long long w = 0;
 		for(int j = 0;j<height;j++){
 			for(int i=0;i<width;i++){
@@ -1053,6 +1181,7 @@ int main(int argc, char* argv[])
 				}
 
 		}
+		*/
 
 		std::string temp =  (*cam).image_name;
 		temp = temp.substr(0,temp.size()-3) + "jpg";

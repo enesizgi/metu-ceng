@@ -76,6 +76,8 @@ namespace parser
         std::vector<double> transformation_matrix;
         std::vector<Vec3f> vertices;
         double u,v;
+        Vec3f R;
+        int r_all;
     };
 
     struct Mesh
@@ -97,6 +99,10 @@ namespace parser
         float radius;
         std::string transformations;
         std::vector<double> transformation_matrix;
+        double u,v;
+        int r_all;
+        Vec3f R;
+        Vec3f uu,vv,ww;
     };
 
     struct Rotation

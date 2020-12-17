@@ -261,6 +261,9 @@ void parser::Scene::loadFromXml(const std::string& filepath)
             stream << child->GetText() << std::endl;
             stream >> mesh.texture_id;
         }
+        else {
+            mesh.texture_id = 0;
+        }
 
         child = element->FirstChildElement("Transformations");
         
@@ -268,6 +271,9 @@ void parser::Scene::loadFromXml(const std::string& filepath)
             const char* temp = child->GetText();
             int len = strlen(temp);
             mesh.transformations.assign(temp, len);
+        }
+        else {
+            mesh.transformations = "";
         }
 
         child = element->FirstChildElement("Faces");
@@ -303,6 +309,9 @@ void parser::Scene::loadFromXml(const std::string& filepath)
             stream << child->GetText() << std::endl;
             stream >> triangle.texture_id;
         }
+        else {
+            triangle.texture_id = 0;
+        }
 
         child = element->FirstChildElement("Transformations");
         
@@ -310,6 +319,9 @@ void parser::Scene::loadFromXml(const std::string& filepath)
             const char* temp = child->GetText();
             int len = strlen(temp);
             triangle.transformations.assign(temp, len);
+        }
+        else {
+            triangle.transformations = "";
         }
 
         child = element->FirstChildElement("Indices");
@@ -337,6 +349,9 @@ void parser::Scene::loadFromXml(const std::string& filepath)
             stream << child->GetText() << std::endl;
             stream >> sphere.texture_id;
         }
+        else {
+            sphere.texture_id = 0;
+        }
 
         child = element->FirstChildElement("Transformations");
 
@@ -344,6 +359,9 @@ void parser::Scene::loadFromXml(const std::string& filepath)
             const char* temp = child->GetText();
             int len = strlen(temp);
             sphere.transformations.assign(temp, len);
+        }
+        else {
+            sphere.transformations = "";
         }
 
         child = element->FirstChildElement("Center");
