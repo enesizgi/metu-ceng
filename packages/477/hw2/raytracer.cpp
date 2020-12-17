@@ -5,6 +5,7 @@
 #include <mutex>
 #include <algorithm>
 #include <string>
+#include <cstring>
 #include <cmath>
 
 #include "parser.h"
@@ -12,9 +13,13 @@
 #include "ppm.h"
 #include "matrixInverse.h"
 #include "BVH.h"
+#include "jpeg.h"
 
 std::mutex m1;
+std::mutex m2;
 unsigned char* image;
+
+int asdfg = 0;
 
 using namespace parser;
 typedef unsigned char RGB[3];
@@ -184,7 +189,9 @@ double intersectSphere(Ray const &r,Sphere const &s,Scene const &scene){
 }
 
 
-double intersectTriangle(Ray const &r,Triangle const &tr,Scene const &scene){
+double intersectTriangle(Ray const &r,Triangle &tr,Scene &scene){
+	asdfg++;
+
 	double  a,b,c,d,e,f,g,h,i,j,k,l;
 	double beta,gamma,t;
 	
@@ -194,12 +201,8 @@ double intersectTriangle(Ray const &r,Triangle const &tr,Scene const &scene){
 	
 	double dd;
 	Vec3f ma,mb,mc;
+	
 
-	/*
-	ma = scene.vertex_data[tr.indices.v0_id-1];
-	mb = scene.vertex_data[tr.indices.v1_id-1];
-	mc = scene.vertex_data[tr.indices.v2_id-1];
-	*/
 	ma = tr.vertices[0];
 	mb = tr.vertices[1];
 	mc = tr.vertices[2];
@@ -242,6 +245,90 @@ double intersectTriangle(Ray const &r,Triangle const &tr,Scene const &scene){
 	beta = (j*eimhf+k*gfmdi+l*dhmeg)/M;
 	
 	if (beta<0 || beta>(1-gamma)) return -1;
+
+	/*
+	if (!scene.tex_coord_data.size())
+		return t;
+
+	if (tr.texture_id <= 0) 
+		return t;
+
+	Vec2f v1,v2,v3;
+
+	v1 = scene.tex_coord_data[tr.indices.v0_id-1];
+	v2 = scene.tex_coord_data[tr.indices.v1_id-1];
+	v3 = scene.tex_coord_data[tr.indices.v2_id-1];
+	
+
+	tr.u = v1.x + beta*(v2.x - v1.x) + gamma*(v3.x - v1.x);
+
+	tr.v = v1.y + beta*(v2.y - v1.y) + gamma*(v3.y - v1.y);
+
+	auto& texture = scene.textures[tr.texture_id-1];
+	auto& diffuse = scene.materials[tr.material_id-1].diffuse;
+	auto& decalMode = texture.decalMode;
+	
+	if (texture.appearance == "clamp") {
+		tr.u = tr.u > 1 ? 1 : tr.u ;
+		tr.v = tr.v > 1 ? 1 : tr.v ;
+		tr.u = tr.u < 0 ? 0 : tr.u ;
+		tr.v = tr.v < 0 ? 0 : tr.v ;
+	}
+	else {
+		tr.u = tr.u - std::floor(tr.u);
+		tr.v = tr.v - std::floor(tr.v);
+	}
+
+	Vec2f ij;
+	ij.x = tr.u * texture.width;
+	ij.y = tr.v * texture.height;
+	Vec3f C;
+	if (texture.interpolation == "nearest") {
+		int x = std::round(ij.x);
+		int y = std::round(ij.y);
+
+		C.x = texture.image[3*y*texture.width + 3*x];
+		C.y = texture.image[3*y*texture.width + 3*x + 1];
+		C.z = texture.image[3*y*texture.width + 3*x + 2];
+
+
+	}
+	else {
+		int p = std::floor(ij.x);
+		int q = std::floor(ij.y);
+		float dx = ij.x-p;
+		float dy = ij.y-q;
+
+		C.x = texture.image[3*p*texture.width + 3*q]*(1-dx)*(1-dy) +
+		texture.image[3*(p+1)*texture.width + 3*q]*dx*(1-dy) +
+		texture.image[3*p*texture.width + 3*(q+1)]*(1-dx)*dy +
+		texture.image[3*(p+1)*texture.width + 3*(q+1)]*dx*dy;
+
+		C.y = texture.image[3*p*texture.width + 3*q+1]*(1-dx)*(1-dy) +
+		texture.image[3*(p+1)*texture.width + 3*q+1]*dx*(1-dy) +
+		texture.image[3*p*texture.width + 3*(q+1)+1]*(1-dx)*dy +
+		texture.image[3*(p+1)*texture.width + 3*(q+1)+1]*dx*dy;
+
+		C.z = texture.image[3*p*texture.width + 3*q+2]*(1-dx)*(1-dy) +
+		texture.image[3*(p+1)*texture.width + 3*q+2]*dx*(1-dy) +
+		texture.image[3*p*texture.width + 3*(q+1)+2]*(1-dx)*dy +
+		texture.image[3*(p+1)*texture.width + 3*(q+1)+2]*dx*dy;
+
+	}
+
+	C.x = C.x/255; C.y = C.y/255; C.z = C.z/255;
+
+	if (decalMode == "replace_kd") {
+		diffuse = C;
+	}
+	else if (decalMode == "blend_kd") {
+		diffuse = add(diffuse,C);
+	}
+
+	
+	*/
+
+
 	
 	return t;
 }
@@ -339,6 +426,7 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			
 			double t;
 			Triangle tr = scene.meshes[k].m_triangles[l];
+			tr.indices = scene.meshes[k].faces[l];
 			/*
 			tr.indices.v0_id = scene.meshes[k].faces[l].v0_id;
 			tr.indices.v1_id = scene.meshes[k].faces[l].v1_id;
@@ -371,13 +459,9 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 		x = add(ray.a,mult(ray.b,t_min));
 		if(t_min == t_s){
 			
-			//Vec3f center = scene.vertex_data[scene.spheres[closest_s].center_vertex_id-1];
+			
 			Vec3f center = scene.spheres[closest_s].center;
-			/*
-			std::vector<double> hom_center{center.x,center.y,center.z,1};
-			std::vector<double> hom2_center(4);
-			matrixMult(scene.spheres[closest_s].transformation_matrix,hom_center,hom2_center);
-			*/
+		
 			center =mult(center,-1);
 			normal = add(x,center);
 			normal = normalize(normal);
@@ -388,12 +472,7 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			
 			Vec3f a, b, c, b_a, c_b;
 			tr = scene.triangles[closest_tr];
-			//scene.triangles[closest_tr].transformation_matrix
-			/*
-			a = scene.vertex_data[tr.indices.v0_id-1];
-			b = scene.vertex_data[tr.indices.v1_id-1];
-			c = scene.vertex_data[tr.indices.v2_id-1];
-			*/
+			
 			a = tr.vertices[0];
 			b = tr.vertices[1];
 			c = tr.vertices[2];
@@ -410,17 +489,11 @@ Vec3f getColor(Scene & scene, int maxDepth, Ray ray) {
 			Vec3f a, b, c, b_a, c_b;
 			face = scene.meshes[closest_mesh].faces[closest_face];
 			
-			//scene.meshes[closest_mesh].transformation_matrix
-			/*
-			a = scene.vertex_data[face.v0_id-1];
-			b = scene.vertex_data[face.v1_id-1];
-			c = scene.vertex_data[face.v2_id-1];
-			*/
 
 			a = scene.meshes[closest_mesh].m_triangles[closest_face].vertices[0];
 			b = scene.meshes[closest_mesh].m_triangles[closest_face].vertices[1];
 			c = scene.meshes[closest_mesh].m_triangles[closest_face].vertices[2];
-			 
+
 			b_a = add(b, mult(a, -1));
 			c_b = add(c, mult(b, -1));
 			normal = cross(b_a, c_b);
@@ -508,7 +581,7 @@ for(std::vector<PointLight>::iterator light = scene.point_lights.begin();light !
 
 	if (t1 != -1) 
 		continue;
-	
+
 	Vec3f Ld = Diffuse_shading(mat.diffuse,normal,x,*light);
 	Vec3f Ls = Specular_Shading(mat,normal,x,ray,*light);
 	La = add(La,add(Ld,Ls));
@@ -684,6 +757,27 @@ int main(int argc, char* argv[])
     parser::Scene scene;
     scene.loadFromXml(argv[1]);
 
+	for (auto& texture : scene.textures) {
+    	int w, h;
+		int s_image = texture.imageName.size();
+		char tmp[s_image + 1];
+		strcpy(tmp,texture.imageName.c_str());
+		/*
+		char* tmp = new char[s_image];
+		for (int i = 0;i<s_image;i++)
+			tmp[i] = texture.imageName[i];*/
+
+    	read_jpeg_header(tmp, w, h);
+
+		texture.image = new unsigned char [w*h*3];
+
+		read_jpeg(tmp, texture.image, w, h);
+
+		texture.width = w;
+		texture.height = h;
+
+	}
+
 
 	// mesh icin
 	for (int j = 0;j<scene.meshes.size();j++) {
@@ -741,6 +835,9 @@ int main(int argc, char* argv[])
 			tr.vertices.push_back(scene.vertex_data[i.v1_id-1]);
 			tr.vertices.push_back(scene.vertex_data[i.v2_id-1]);
 			mesh.m_triangles.push_back(tr);
+			tr.material_id = mesh.material_id;
+			tr.texture_id = mesh.texture_id;
+			tr.indices = i;
 			/*
 			mesh.m_triangles.push_back(scene.vertex_data[i.v0_id-1]);
 			mesh.m_triangles.push_back(scene.vertex_data[i.v1_id-1]);
@@ -898,7 +995,7 @@ int main(int argc, char* argv[])
 		numberofThreads;
 
 		std::vector<std::thread> threads;
-
+		/*
 		for (int i = 0;i<numberofThreads;i++) {
 			
 			threads.push_back(std::thread(LoadImages,height,width,i,numberofThreads,*cam,scene));
@@ -911,17 +1008,40 @@ int main(int argc, char* argv[])
 			}
 			//std::cout << "Thread " << i << " closing..." << "\n";
 		}
+		*/
+
+		long long w = 0;
+		for(int j = 0;j<height;j++){
+			for(int i=0;i<width;i++){
+
+				Ray r;
+				r = generateRay(i,j,*cam);
+
+				Vec3f color;
+				color = getColor(scene,scene.max_recursion_depth,r);
+				color.x = color.x > 255 ? 255 : round(color.x) ;
+				color.y = color.y > 255 ? 255 : round(color.y) ;
+				color.z = color.z > 255 ? 255 : round(color.z) ;
+
+
+				image[w++] = color.x;
+				image[w++] = color.y;
+				image[w++] = color.z;
+
+				
+				}
+
+		}
 
 		std::string temp =  (*cam).image_name;
-		char* temp2 = new char[temp.size()+1];
-		char* temp3 = temp2;
-		for (int h = 0;h<temp.size();h++) {
-			(*temp3) = temp[h];
-			temp3++;
-		}
-		*temp3 = '\0';
+		temp = temp.substr(0,temp.size()-3) + "jpg";
+		char temp2[temp.size()+1];
+		strcpy(temp2,temp.c_str());
 
-		write_ppm(temp2, image, (*cam).image_width, (*cam).image_height);
+		// Save this image as JPEG
+		write_jpeg(temp2, image, (*cam).image_width, (*cam).image_height);
+
+		//write_ppm(temp2, image, (*cam).image_width, (*cam).image_height);
 
 
 

@@ -75,6 +75,7 @@ namespace parser
         std::string transformations;
         std::vector<double> transformation_matrix;
         std::vector<Vec3f> vertices;
+        double u,v;
     };
 
     struct Mesh
@@ -109,6 +110,9 @@ namespace parser
         std::string interpolation;
         std::string decalMode;
         std::string appearance;
+        int width;
+        int height;
+        unsigned char *image;
     };
 
     struct Scene
