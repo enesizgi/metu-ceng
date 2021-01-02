@@ -22,6 +22,44 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+void init () {
+    glEnable(GL_DEPTH_TEST);
+}
+
+void drawObject () {
+    
+    glBegin(GL_TRIANGLES);
+    for (auto& mesh : scene.meshes) {
+        for (auto& face : ) {
+
+        }
+    }
+
+    glEnd();
+    
+}
+
+void customizedRenderFunction () {
+
+    glClearColor(0,0,0,1);
+    glClearDepth(1.0f);
+    glClearStencil(0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    drawObject();
+}
+
+void setCamera () {
+    auto& c = scene.camera;
+    glViewport(0,0,c.image_width,c.image_height);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    GLfloat d[] = {c.gaze.x + c.position.x,c.gaze.y + c.position.y, c.gaze.z + c.position.z};
+    gluLookAt(c.position.x,c.position.y,c.position.z,d[0],d[1],d[2],c.up.x,c.up.y,c.up.z);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glFrustum(c.near_plane.x,c.near_plane.y,c.near_plane.z,c.near_plane.w,c.near_distance,c.far_distance);
+}
+
 int main(int argc, char* argv[]) {
     scene.loadFromXml(argv[1]);
 
@@ -39,6 +77,7 @@ int main(int argc, char* argv[]) {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
+    init();
     glfwMakeContextCurrent(win);
 
     GLenum err = glewInit();
@@ -49,9 +88,11 @@ int main(int argc, char* argv[]) {
 
     glfwSetKeyCallback(win, keyCallback);
 
+    setCamera();
+
     while(!glfwWindowShouldClose(win)) {
         glfwWaitEvents();
-
+        customizedRenderFunction();
         glfwSwapBuffers(win);
     }
 
