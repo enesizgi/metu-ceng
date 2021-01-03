@@ -22,19 +22,35 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-void drawObjects (parser::Mesh& m) {
-    glBegin(GL_TRIANGLES);
-    for (auto& f : m.faces) {
-        parser::Vec3f a(scene.vertex_data[f.v0_id-1].x,scene.vertex_data[f.v0_id-1].y,scene.vertex_data[f.v0_id-1].z);
-        parser::Vec3f b(scene.vertex_data[f.v1_id-1].x,scene.vertex_data[f.v1_id-1].y,scene.vertex_data[f.v1_id-1].z);
-        parser::Vec3f c(scene.vertex_data[f.v2_id-1].x,scene.vertex_data[f.v2_id-1].y,scene.vertex_data[f.v2_id-1].z);
-
-        glVertex3f(a.x,a.y,a.z);
-        glVertex3f(b.x,b.y,b.z);
-        glVertex3f(c.x,c.y,c.z);
-    }
-    glEnd();
+void init () {
+    glEnable(GL_DEPTH_TEST);
 }
+
+void turnOnLights(){
+    glEnable(GL_LIGHTING);
+        GLfloat zero[] = {0,0,0,1.0f};
+        GLfloat ambient[] = {scene.ambient_light.x, scene.ambient_light.y, scene.ambient_light.z, 1.0f};
+        glLightfv(GL_LIGHT0 , GL_POSITION, zero);
+        glLightfv(GL_LIGHT0 , GL_AMBIENT, ambient);
+        glLightfv(GL_LIGHT0 , GL_DIFFUSE, zero);
+        glLightfv(GL_LIGHT0 , GL_SPECULAR, zero); 
+
+    for (int i=0; i<scene.point_lights.size();i++){
+        glEnable(GL_LIGHT1 +i);
+        GLfloat col[] = { scene.point_lights[i].intensity.x, scene.point_lights[i].intensity.y, scene.point_lights[i].intensity.z, 1.0f};
+        GLfloat pos[] = {scene.point_lights[i].position.x, scene.point_lights[i].position.y, scene.point_lights[i].position.z, 1.0f};    
+
+        glLightfv(GL_LIGHT1 + i, GL_POSITION, pos);
+        glLightfv(GL_LIGHT1 + i, GL_AMBIENT, GLfloat*);
+        glLightfv(GL_LIGHT1 + i, GL_DIFFUSE, col);
+        glLightfv(GL_LIGHT1 + i, GL_SPECULAR, col);
+    }
+}
+
+void turnOffLights() {
+glDisable(GL_LIGHTING);
+for(int i =0; i < i<scene.point_lights.size(); i++) 
+glDisable(GL_LIGHT0 + i);}
 
 void setCamera (int width, int height) {
     auto& c = scene.camera;
@@ -55,6 +71,8 @@ void setCamera (int width, int height) {
 void init () {
     glEnable(GL_DEPTH_TEST);
 }
+
+
 
 int main(int argc, char* argv[]) {
     scene.loadFromXml(argv[1]);
