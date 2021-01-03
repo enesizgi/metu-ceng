@@ -114,6 +114,8 @@ void drawObjects (parser::Mesh& m) {
     glMaterialfv(GL_FRONT,GL_SPECULAR,specColor) ;
     glMaterialfv(GL_FRONT,GL_SHININESS,specExp) ;
 
+    std::vector<std::vector<parser::Vec3f>> normal_data(scene.vertex_data.size());
+
     for (auto& f : m.faces) {
         parser::Vec3f a(scene.vertex_data[f.v0_id-1].x,scene.vertex_data[f.v0_id-1].y,scene.vertex_data[f.v0_id-1].z);
         parser::Vec3f b(scene.vertex_data[f.v1_id-1].x,scene.vertex_data[f.v1_id-1].y,scene.vertex_data[f.v1_id-1].z);
@@ -123,14 +125,46 @@ void drawObjects (parser::Mesh& m) {
 
         b_a = add(b, mult(a, -1));
         c_b = add(c, mult(b, -1));
-        normal = cross(b_a, c_b);
+        normal = cross(b_a,c_b);
         normal = normalize(normal);
+
+        normal_data[f.v0_id-1].push_back(normal);
+        normal_data[f.v1_id-1].push_back(normal);
+        normal_data[f.v2_id-1].push_back(normal);
+    }
+
+    for (auto& i : normal_data) {
+        parser::Vec3f sum(0,0,0);
+        for (auto& j : i) {
+            sum.x += j.x;
+            sum.y += j.y;
+            sum.z += j.z;
+        }
+        sum.x = sum.x / i.size();
+        sum.y = sum.y / i.size();
+        sum.z = sum.z / i.size();
+        i.clear();
+        i.push_back(sum);
+    }
+
+    for (auto& f : m.faces) {
+
+        auto &n = normal_data[f.v0_id-1][0];
+
+        parser::Vec3f a(scene.vertex_data[f.v0_id-1].x,scene.vertex_data[f.v0_id-1].y,scene.vertex_data[f.v0_id-1].z);
+        parser::Vec3f b(scene.vertex_data[f.v1_id-1].x,scene.vertex_data[f.v1_id-1].y,scene.vertex_data[f.v1_id-1].z);
+        parser::Vec3f c(scene.vertex_data[f.v2_id-1].x,scene.vertex_data[f.v2_id-1].y,scene.vertex_data[f.v2_id-1].z);
+        parser::Vec3f normal = {n.x,n.y,n.z};
         glNormal3f(normal.x,normal.y,normal.z);
         glVertex3f(a.x,a.y,a.z);
 
+        n = normal_data[f.v1_id-1][0];
+        normal = {n.x,n.y,n.z};
         glNormal3f(normal.x,normal.y,normal.z);
         glVertex3f(b.x,b.y,b.z);
 
+        n = normal_data[f.v2_id-1][0];
+        normal = {n.x,n.y,n.z};
         glNormal3f(normal.x,normal.y,normal.z);
         glVertex3f(c.x,c.y,c.z);
     }
@@ -149,24 +183,29 @@ void setCamera (int width, int height) {
     glLoadIdentity();
     glFrustum(c.near_plane.x,c.near_plane.y,c.near_plane.z,c.near_plane.w,
     c.near_distance,c.far_distance);
-
+    
 
 }
 
 void init () {
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_NEVER);
     glEnable(GL_NORMALIZE);
 
     glShadeModel(GL_SMOOTH);
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+    
+    /*
     if (scene.culling_enabled) 
         glEnable(GL_CULL_FACE);
     else
-        glDisable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
     
     if (scene.culling_face)
-        glCullFace(GL_FRONT_FACE);
+        glCullFace(GL_FRONT);
     else
-        glCullFace(GL_BACK);
+        glCullFace(GL_BACK);*/
 }
 
 
@@ -209,7 +248,7 @@ int main(int argc, char* argv[]) {
         turnOnLights();
         //glViewport(0,0,width,height);
         glClearColor(0,0,0,1);
-        glClearDepth(1.0f);
+        glClearDepth(0.1f);
         glClearStencil(0);
         turnOnLights();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);

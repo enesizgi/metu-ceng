@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/hw3",
-            "args": ["Samples/horse_and_mug_reversed_frontface_culled.xml"],
+            "args": ["Samples/horse_and_mug_reversed.xml"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
