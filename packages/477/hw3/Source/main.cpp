@@ -55,7 +55,7 @@ parser::Vec3f mult(parser::Vec3f const& a, double const &c)
 	return tmp;
 }
 
-double length(parser::Vec3f const& v)
+float length(parser::Vec3f const& v)
 {
 	return sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
 }
@@ -63,7 +63,7 @@ double length(parser::Vec3f const& v)
 parser::Vec3f normalize(parser::Vec3f const &v)
 {
 	parser::Vec3f tmp;
-	double d;
+	float d;
 	
 	d = length(v);
 	tmp.x = v.x/d;
@@ -134,15 +134,20 @@ void drawObjects (parser::Mesh& m) {
     }
 
     for (auto& i : normal_data) {
+        if (i.size() == 0) continue;
         parser::Vec3f sum(0,0,0);
         for (auto& j : i) {
             sum.x += j.x;
             sum.y += j.y;
             sum.z += j.z;
         }
+        
+        /*
         sum.x = sum.x / i.size();
         sum.y = sum.y / i.size();
         sum.z = sum.z / i.size();
+        */
+        sum = normalize(sum);
         i.clear();
         i.push_back(sum);
     }
@@ -189,23 +194,9 @@ void setCamera (int width, int height) {
 
 void init () {
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_NEVER);
     glEnable(GL_NORMALIZE);
 
     glShadeModel(GL_SMOOTH);
-    glCullFace(GL_BACK);
-    glEnable(GL_CULL_FACE);
-    
-    /*
-    if (scene.culling_enabled) 
-        glEnable(GL_CULL_FACE);
-    else
-        glEnable(GL_CULL_FACE);
-    
-    if (scene.culling_face)
-        glCullFace(GL_FRONT);
-    else
-        glCullFace(GL_BACK);*/
 }
 
 
@@ -221,7 +212,7 @@ int main(int argc, char* argv[]) {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-
+    
     win = glfwCreateWindow(scene.camera.image_width, scene.camera.image_height, "CENG477 - HW3", NULL, NULL);
     if (!win) {
         glfwTerminate();
@@ -239,19 +230,36 @@ int main(int argc, char* argv[]) {
 
     glfwSetKeyCallback(win, keyCallback);
 
-    
+    turnOnLights();
 
     while(!glfwWindowShouldClose(win)) {
         int width,height;
         glfwGetFramebufferSize(win,&width,&height);
+
+        
         setCamera(width,height);
-        turnOnLights();
         //glViewport(0,0,width,height);
         glClearColor(0,0,0,1);
-        glClearDepth(0.1f);
+        glClearDepth(1.0f);
         glClearStencil(0);
-        turnOnLights();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glShadeModel(GL_SMOOTH);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_RESCALE_NORMAL);
+
+        if (scene.culling_enabled)
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
+        
+        if (scene.culling_face)
+            glCullFace(GL_FRONT);
+        else
+            glCullFace(GL_BACK);
+        
+        //glDepthFunc(GL_LEQUAL);
+        
+        //glEnable(GL_NORMALIZE);
         glMatrixMode(GL_MODELVIEW);
         
         for (auto& i : scene.meshes) {
@@ -280,8 +288,6 @@ int main(int argc, char* argv[]) {
             glPopMatrix();
         }
         
-        //glTranslatef(-1,-1,0);
-        //glRotatef(70.0,0,0,1);
 
         glfwWaitEvents();
 
