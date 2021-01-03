@@ -22,6 +22,57 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+
+parser::Vec3f cross(parser::Vec3f const &a, parser::Vec3f const &b)
+{
+	parser::Vec3f tmp;
+	
+	tmp.x = a.y*b.z-b.y*a.z;
+	tmp.y = b.x*a.z-a.x*b.z;
+	tmp.z = a.x*b.y-b.x*a.y;
+	
+	return tmp;
+}
+
+
+parser::Vec3f add(parser::Vec3f const &a, parser::Vec3f const &b)
+{
+	parser::Vec3f tmp;
+	tmp.x = a.x+b.x;
+	tmp.y = a.y+b.y;
+	tmp.z = a.z+b.z;
+	
+	return tmp;
+}
+
+parser::Vec3f mult(parser::Vec3f const& a, double const &c)
+{
+	parser::Vec3f tmp;
+	tmp.x = a.x*c;
+	tmp.y = a.y*c;
+	tmp.z = a.z*c;
+	
+	return tmp;
+}
+
+double length(parser::Vec3f const& v)
+{
+	return sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
+}
+
+parser::Vec3f normalize(parser::Vec3f const &v)
+{
+	parser::Vec3f tmp;
+	double d;
+	
+	d = length(v);
+	tmp.x = v.x/d;
+	tmp.y = v.y/d;
+	tmp.z = v.z/d;
+	
+	return tmp;
+}
+
 void turnOnLights(){
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -52,13 +103,35 @@ void turnOffLights() {
 
 void drawObjects (parser::Mesh& m) {
     glBegin(GL_TRIANGLES);
+    auto &c = scene.materials[m.material_id-1];
+    GLfloat ambColor[ 4 ]   ={c.ambient.x,c.ambient.y,c.ambient.z,1.0};
+    GLfloat diffColor[ 4 ]   ={c.diffuse.x,c.diffuse.y,c.diffuse.z,1.0};
+    GLfloat specColor[ 4 ]   ={c.specular.x,c.specular.y,c.specular.z,1.0};
+    GLfloat specExp[ 1 ]   ={c.phong_exponent};
+
+    glMaterialfv(GL_FRONT,GL_AMBIENT,ambColor) ;
+    glMaterialfv(GL_FRONT,GL_DIFFUSE,diffColor) ;
+    glMaterialfv(GL_FRONT,GL_SPECULAR,specColor) ;
+    glMaterialfv(GL_FRONT,GL_SHININESS,specExp) ;
+
     for (auto& f : m.faces) {
         parser::Vec3f a(scene.vertex_data[f.v0_id-1].x,scene.vertex_data[f.v0_id-1].y,scene.vertex_data[f.v0_id-1].z);
         parser::Vec3f b(scene.vertex_data[f.v1_id-1].x,scene.vertex_data[f.v1_id-1].y,scene.vertex_data[f.v1_id-1].z);
         parser::Vec3f c(scene.vertex_data[f.v2_id-1].x,scene.vertex_data[f.v2_id-1].y,scene.vertex_data[f.v2_id-1].z);
 
+        parser::Vec3f b_a, c_b,normal;
+
+        b_a = add(b, mult(a, -1));
+        c_b = add(c, mult(b, -1));
+        normal = cross(b_a, c_b);
+        normal = normalize(normal);
+        glNormal3f(normal.x,normal.y,normal.z);
         glVertex3f(a.x,a.y,a.z);
+
+        glNormal3f(normal.x,normal.y,normal.z);
         glVertex3f(b.x,b.y,b.z);
+
+        glNormal3f(normal.x,normal.y,normal.z);
         glVertex3f(c.x,c.y,c.z);
     }
     glEnd();
@@ -82,6 +155,18 @@ void setCamera (int width, int height) {
 
 void init () {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_NORMALIZE);
+
+    glShadeModel(GL_SMOOTH);
+    if (scene.culling_enabled) 
+        glEnable(GL_CULL_FACE);
+    else
+        glDisable(GL_CULL_FACE);
+    
+    if (scene.culling_face)
+        glCullFace(GL_FRONT_FACE);
+    else
+        glCullFace(GL_BACK);
 }
 
 
@@ -115,19 +200,27 @@ int main(int argc, char* argv[]) {
 
     glfwSetKeyCallback(win, keyCallback);
 
+    
+
     while(!glfwWindowShouldClose(win)) {
         int width,height;
         glfwGetFramebufferSize(win,&width,&height);
         setCamera(width,height);
+        turnOnLights();
         //glViewport(0,0,width,height);
         glClearColor(0,0,0,1);
         glClearDepth(1.0f);
         glClearStencil(0);
+        turnOnLights();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glMatrixMode(GL_MODELVIEW);
         
-
         for (auto& i : scene.meshes) {
+            if (i.mesh_type == "Solid")
+                glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+            else if (i.mesh_type == "Wireframe")
+                glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+
             glPushMatrix();
             for (int j = i.transformations.size() - 1; j >= 0 ;j--) {
                 auto& k = i.transformations[j];
