@@ -12,6 +12,10 @@ namespace parser
     struct Vec3f
     {
         float x, y, z;
+        Vec3f () {};
+        Vec3f (float a,float b,float c) {
+            x = a; y = b; z = c;
+        };
     };
 
     struct Vec3i

@@ -22,42 +22,38 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
-void init () {
-    glEnable(GL_DEPTH_TEST);
-}
-
-void drawObject () {
-    
+void drawObjects (parser::Mesh& m) {
     glBegin(GL_TRIANGLES);
-    for (auto& mesh : scene.meshes) {
-        for (auto& face : ) {
+    for (auto& f : m.faces) {
+        parser::Vec3f a(scene.vertex_data[f.v0_id-1].x,scene.vertex_data[f.v0_id-1].y,scene.vertex_data[f.v0_id-1].z);
+        parser::Vec3f b(scene.vertex_data[f.v1_id-1].x,scene.vertex_data[f.v1_id-1].y,scene.vertex_data[f.v1_id-1].z);
+        parser::Vec3f c(scene.vertex_data[f.v2_id-1].x,scene.vertex_data[f.v2_id-1].y,scene.vertex_data[f.v2_id-1].z);
 
-        }
+        glVertex3f(a.x,a.y,a.z);
+        glVertex3f(b.x,b.y,b.z);
+        glVertex3f(c.x,c.y,c.z);
     }
-
     glEnd();
-    
 }
 
-void customizedRenderFunction () {
-
-    glClearColor(0,0,0,1);
-    glClearDepth(1.0f);
-    glClearStencil(0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    drawObject();
-}
-
-void setCamera () {
+void setCamera (int width, int height) {
     auto& c = scene.camera;
-    glViewport(0,0,c.image_width,c.image_height);
+    glViewport(0,0,width,height);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    GLfloat d[] = {c.gaze.x + c.position.x,c.gaze.y + c.position.y, c.gaze.z + c.position.z};
-    gluLookAt(c.position.x,c.position.y,c.position.z,d[0],d[1],d[2],c.up.x,c.up.y,c.up.z);
+    gluLookAt(c.position.x,c.position.y,c.position.z,
+    c.position.x + c.gaze.x,c.position.y + c.gaze.y, c.position.z + c.gaze.z,
+    c.up.x, c.up.y, c.up.z);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(c.near_plane.x,c.near_plane.y,c.near_plane.z,c.near_plane.w,c.near_distance,c.far_distance);
+    glFrustum(c.near_plane.x,c.near_plane.y,c.near_plane.z,c.near_plane.w,
+    c.near_distance,c.far_distance);
+
+
+}
+
+void init () {
+    glEnable(GL_DEPTH_TEST);
 }
 
 int main(int argc, char* argv[]) {
@@ -79,6 +75,7 @@ int main(int argc, char* argv[]) {
     }
     init();
     glfwMakeContextCurrent(win);
+    
 
     GLenum err = glewInit();
     if (err != GLEW_OK) {
@@ -88,11 +85,45 @@ int main(int argc, char* argv[]) {
 
     glfwSetKeyCallback(win, keyCallback);
 
-    setCamera();
-
     while(!glfwWindowShouldClose(win)) {
+        int width,height;
+        glfwGetFramebufferSize(win,&width,&height);
+        setCamera(width,height);
+        //glViewport(0,0,width,height);
+        glClearColor(0,0,0,1);
+        glClearDepth(1.0f);
+        glClearStencil(0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glMatrixMode(GL_MODELVIEW);
+        
+
+        for (auto& i : scene.meshes) {
+            glPushMatrix();
+            for (int j = i.transformations.size() - 1; j >= 0 ;j--) {
+                auto& k = i.transformations[j];
+                if (k.transformation_type == "Translation") {
+                    auto& t = scene.translations[k.id-1];
+                    glTranslatef(t.x,t.y,t.z);
+                }
+                else if (k.transformation_type == "Rotation") {
+                    auto& r = scene.rotations[k.id-1];
+                    glRotatef(r.x,r.y,r.z,r.w);
+                }
+                else if (k.transformation_type == "Scaling") {
+                    auto& s = scene.scalings[k.id-1];
+                    glScalef(s.x,s.y,s.z);
+                }
+            }
+            drawObjects(i);
+            glPopMatrix();
+        }
+        
+        //glTranslatef(-1,-1,0);
+        //glRotatef(70.0,0,0,1);
+
         glfwWaitEvents();
-        customizedRenderFunction();
+
+
         glfwSwapBuffers(win);
     }
 
