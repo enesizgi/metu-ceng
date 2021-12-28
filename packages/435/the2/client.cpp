@@ -14,13 +14,59 @@
 #include <netdb.h>
 #include <string>
 #include <iostream>
+#include <thread>
+#include <mutex>
+
+#define MAXBUFLEN 100
+
+struct sockaddr_storage addr;
+// socklen_t addr_len;
+int sockfd, sockfd2;
+struct addrinfo hints, *servinfo, *p;
+int rv;
+int numbytes;
+char buf[MAXBUFLEN];
+char s[INET_ADDRSTRLEN];
+
+void *get_in_addr(struct sockaddr *sa)
+{
+	return &(((struct sockaddr_in *)sa)->sin_addr);
+}
+
+unsigned short int get_port(struct sockaddr *sa)
+{
+	return (((struct sockaddr_in *)sa)->sin_port);
+}
+
+void thread1()
+{
+	std::cout << "Thread started to work "
+			  << "\n";
+
+	while (true)
+	{
+		socklen_t addr_len = sizeof addr;
+		if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN - 1, 0,
+								 (struct sockaddr *)&addr, &addr_len)) == -1)
+		{
+			perror("recvfrom");
+			exit(1);
+		}
+
+		printf("listener: got packet from %s\n",
+			   inet_ntop(addr.ss_family,
+						 get_in_addr((struct sockaddr *)&addr),
+						 s, sizeof s));
+		// std::cout << "Port:" << inet_ntop(their_addr.ss_family, get_port((struct sockaddr *)&their_addr), s, sizeof s) << "\n";
+		std::cout << "Port:" << ntohs(get_port((struct sockaddr *)&addr)) << "\n";
+		printf("listener: packet is %d bytes long\n", numbytes);
+		buf[numbytes] = '\0';
+		printf("listener: packet contains \"%s\"\n", buf);
+	}
+}
 
 int main(int argc, char *argv[])
 {
-	int sockfd;
-	struct addrinfo hints, *servinfo, *p;
-	int rv;
-	int numbytes;
 
 	if (argc != 4)
 	{
@@ -59,7 +105,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	int sockfd2,rv2;
+	int rv2;
 	struct addrinfo hints2, *servinfo2, *p2;
 	memset(&hints2, 0, sizeof hints2);
 	hints2.ai_family = AF_INET; // set to AF_INET to use IPv4
@@ -75,7 +121,7 @@ int main(int argc, char *argv[])
 	for (p2 = servinfo2; p2 != NULL; p2 = p2->ai_next)
 	{
 		if ((sockfd2 = socket(p2->ai_family, p2->ai_socktype,
-							 p2->ai_protocol)) == -1)
+							  p2->ai_protocol)) == -1)
 		{
 			perror("talker: socket");
 			continue;
@@ -88,9 +134,10 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
+		addr.ss_family = p2->ai_addr->sa_family;
+
 		break;
 	}
-
 
 	if (p == NULL || p2 == NULL)
 	{
@@ -98,12 +145,15 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
+	std::thread t1(thread1);
+	t1.detach();
+
 	while (true)
 	{
 		std::string message;
 		std::cin >> message;
 		std::cout << message << " " << message.size() << "\n";
-		if ((numbytes = sendto(sockfd, (void*)message.c_str(), message.size() + 1, 0,
+		if ((numbytes = sendto(sockfd, (void *)message.c_str(), message.size() + 1, 0,
 							   p2->ai_addr, p2->ai_addrlen)) == -1)
 		{
 			perror("talker: sendto");
