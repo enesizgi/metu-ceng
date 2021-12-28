@@ -48,7 +48,7 @@ int thread1()
 	if ((rv2 = getaddrinfo(inet_ntop(their_addr.ss_family,
 									 get_in_addr((struct sockaddr *)&their_addr),
 									 s, sizeof s),
-						   "5200", &hints2, &servinfo2)) != 0)
+						   std::to_string(ntohs(get_port((struct sockaddr *)&their_addr))).c_str(), &hints2, &servinfo2)) != 0)
 	{
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv2));
 		return 1;
