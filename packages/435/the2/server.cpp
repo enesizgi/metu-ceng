@@ -2,101 +2,16 @@
 ** listener.c -- a datagram sockets "server" demo
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <iostream>
-#include <thread>
-#include <mutex>
+#include "packet.h"
+#include "thread_func.h"
 
-#define MAXBUFLEN 100
+int is_first_rcv = 0;
 
-int sockfd, sockfd2;
-struct sockaddr_storage their_addr;
-char s[INET_ADDRSTRLEN];
-
-void *get_in_addr(struct sockaddr *sa)
-{
-	return &(((struct sockaddr_in *)sa)->sin_addr);
-}
-
-unsigned short int get_port(struct sockaddr *sa)
-{
-	return (((struct sockaddr_in *)sa)->sin_port);
-}
-
-int thread1()
-{
-	int numbytes;
-	std::cout << "Thread started to work " << ntohs(get_port((struct sockaddr *)&their_addr)) << "\n";
-
-	int rv2;
-	struct addrinfo hints2, *servinfo2, *p2;
-	memset(&hints2, 0, sizeof hints2);
-	hints2.ai_family = AF_INET; // set to AF_INET to use IPv4
-	hints2.ai_socktype = SOCK_DGRAM;
-
-	std::cout << std::to_string(ntohs(get_port((struct sockaddr *)&their_addr))).c_str() << "\n";
-
-	if ((rv2 = getaddrinfo(inet_ntop(their_addr.ss_family,
-									 get_in_addr((struct sockaddr *)&their_addr),
-									 s, sizeof s),
-						   std::to_string(ntohs(get_port((struct sockaddr *)&their_addr))).c_str(), &hints2, &servinfo2)) != 0)
-	{
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv2));
-		return 1;
-	}
-
-	// loop through all the results and make a socket
-	for (p2 = servinfo2; p2 != NULL; p2 = p2->ai_next)
-	{
-		if ((sockfd2 = socket(p2->ai_family, p2->ai_socktype,
-							  p2->ai_protocol)) == -1)
-		{
-			perror("talker: socket");
-			continue;
-		}
-
-		if (connect(sockfd2, p2->ai_addr, p2->ai_addrlen) == -1)
-		{
-			close(sockfd2);
-			perror("talker: connect");
-			continue;
-		}
-
-		break;
-	}
-
-	while (true)
-	{
-		std::string message;
-		std::cin >> message;
-		std::cout << message << " " << message.size() << "\n";
-		if ((numbytes = sendto(sockfd, (void *)message.c_str(), message.size() + 1, 0,
-							   p2->ai_addr, p2->ai_addrlen)) == -1)
-		{
-			perror("talker: sendto");
-			exit(1);
-		}
-		std::cout << "sendto bytes:" << numbytes << "\n";
-	}
-}
+int buffer_number = 2;
 
 int main(int argc, char *argv[])
 {
-	struct addrinfo hints, *servinfo, *p;
-	int rv;
-	int numbytes;
-	char buf[MAXBUFLEN];
 	socklen_t addr_len;
-	int is_thread_created = 0;
 
 	if (argc != 2)
 	{
@@ -145,30 +60,116 @@ int main(int argc, char *argv[])
 
 	while (true)
 	{
-		addr_len = sizeof their_addr;
-		if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN - 1, 0,
-								 (struct sockaddr *)&their_addr, &addr_len)) == -1)
+		addr_len = sizeof addr;
+		struct packet *tmp = new packet();
+		if ((numbytes = recvfrom(sockfd, (void *)tmp, sizeof(struct packet), 0,
+								 (struct sockaddr *)&addr, &addr_len)) == -1)
 		{
 			perror("recvfrom");
 			exit(1);
 		}
 
 		printf("listener: got packet from %s\n",
-			   inet_ntop(their_addr.ss_family,
-						 get_in_addr((struct sockaddr *)&their_addr),
+			   inet_ntop(addr.ss_family,
+						 get_in_addr((struct sockaddr *)&addr),
 						 s, sizeof s));
-		// std::cout << "Port:" << inet_ntop(their_addr.ss_family, get_port((struct sockaddr *)&their_addr), s, sizeof s) << "\n";
-		std::cout << "Port:" << ntohs(get_port((struct sockaddr *)&their_addr)) << "\n";
+		// std::cout << "Port:" << inet_ntop(addr.ss_family, get_port((struct sockaddr *)&addr), s, sizeof s) << "\n";
+		std::cout << "Port:" << ntohs(get_port((struct sockaddr *)&addr)) << "\n";
 		printf("listener: packet is %d bytes long\n", numbytes);
-		buf[numbytes] = '\0';
-		printf("listener: packet contains \"%s\"\n", buf);
+		printf("listener: packet contains \"%s\"\n", tmp->payload);
 
-		if (!is_thread_created)
+		if (is_first_rcv == 0)
 		{
-			is_thread_created = 1;
-			std::thread t1(thread1);
+			std::thread t1(sender);
 			t1.detach();
+
+			std::thread t2(input_thread);
+			t2.detach();
+
+			std::thread t3(create_socket);
+			t3.join();
 		}
+
+		is_first_rcv = 1;
+
+		int tmp_checksum = tmp->checksum;
+		if (numbytes != sizeof(struct packet))
+		{
+			continue;
+		}
+
+		if (tmp_checksum != tmp->calc_checksum())
+		{
+			continue;
+		}
+
+		if (tmp->seq_number < 0)
+		{
+			continue;
+		}
+		// m1.lock();
+		if (tmp->ack >= 1)
+		{
+			std::cout << "Ack " << tmp->ack << " Seq: " << tmp->seq_number << "\n";
+			if (tmp->seq_number >= (server_window_start + WINDOW_SIZE))
+			{
+				continue;
+			}
+			buf_server.resize(2 * server_window_start + 1, NULL);
+			buf_server[tmp->seq_number]->finished = 1;
+
+			for (int i = server_window_start; i < buf_server.size(); i++)
+			{
+				if (buf_server[i] == NULL)
+				{
+					break;
+				}
+				if (buf_server[i]->finished == 1)
+				{
+					server_window_start++;
+					continue;
+				}
+				break;
+			}
+		}
+
+		if (tmp->ack == 0)
+		{
+			std::cout << "New packet " << tmp->seq_number << "\n";
+			if (tmp->seq_number >= (client_window_start + WINDOW_SIZE))
+			{
+				continue;
+			}
+			buf_client.resize(2 * client_window_start + 1, NULL);
+			buf_client[tmp->seq_number] = tmp;
+			for (int i = client_window_start; i < buf_client.size(); i++)
+			{
+				if (buf_client[i] == NULL)
+				{
+					break;
+				}
+				if (buf_client[i]->finished == 1)
+				{
+					client_window_start++;
+					continue;
+				}
+				break;
+			}
+         
+			struct packet *ack_package = new packet;
+			ack_package->ack = 1;
+			strcpy(ack_package->payload, tmp->payload);
+			ack_package->seq_number = tmp->seq_number;
+			ack_package->calc_checksum();
+			if ((numbytes = sendto(sockfd, (void *)ack_package, sizeof(struct packet), 0,
+								   p2->ai_addr, p2->ai_addrlen)) == -1)
+			{
+				perror("talker: sendto");
+				exit(1);
+			}
+			std::cout << "sendto bytes:" << numbytes << "\n";
+		}
+		// m1.unlock();
 	}
 
 	freeaddrinfo(servinfo);

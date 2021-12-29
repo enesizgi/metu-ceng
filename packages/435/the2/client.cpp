@@ -2,72 +2,17 @@
 ** talker.c -- a datagram "client" demo
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <string>
-#include <iostream>
-#include <thread>
-#include <mutex>
+#include "packet.h"
+#include "thread_func.h"
 
-#define MAXBUFLEN 100
-
-struct sockaddr_storage addr;
 // socklen_t addr_len;
-int sockfd, sockfd2;
-struct addrinfo hints, *servinfo, *p;
-int rv;
-int numbytes;
-char buf[MAXBUFLEN];
-char s[INET_ADDRSTRLEN];
 
-void *get_in_addr(struct sockaddr *sa)
-{
-	return &(((struct sockaddr_in *)sa)->sin_addr);
-}
+int buffer_number = 1;
 
-unsigned short int get_port(struct sockaddr *sa)
-{
-	return (((struct sockaddr_in *)sa)->sin_port);
-}
-
-void thread1()
-{
-	std::cout << "Thread started to work "
-			  << "\n";
-
-	while (true)
-	{
-		socklen_t addr_len = sizeof addr;
-		if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN - 1, 0,
-								 (struct sockaddr *)&addr, &addr_len)) == -1)
-		{
-			perror("recvfrom");
-			exit(1);
-		}
-
-		printf("listener: got packet from %s\n",
-			   inet_ntop(addr.ss_family,
-						 get_in_addr((struct sockaddr *)&addr),
-						 s, sizeof s));
-		// std::cout << "Port:" << inet_ntop(their_addr.ss_family, get_port((struct sockaddr *)&their_addr), s, sizeof s) << "\n";
-		std::cout << "Port:" << ntohs(get_port((struct sockaddr *)&addr)) << "\n";
-		printf("listener: packet is %d bytes long\n", numbytes);
-		buf[numbytes] = '\0';
-		printf("listener: packet contains \"%s\"\n", buf);
-	}
-}
+int is_first_rcv = 0; // dummy variable to please compiler
 
 int main(int argc, char *argv[])
 {
-
 	if (argc != 4)
 	{
 		fprintf(stderr, "usage: talker hostname message\n");
@@ -105,8 +50,6 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	int rv2;
-	struct addrinfo hints2, *servinfo2, *p2;
 	memset(&hints2, 0, sizeof hints2);
 	hints2.ai_family = AF_INET; // set to AF_INET to use IPv4
 	hints2.ai_socktype = SOCK_DGRAM;
@@ -145,22 +88,12 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
-	std::thread t1(thread1);
-	t1.detach();
-
-	while (true)
-	{
-		std::string message;
-		std::cin >> message;
-		std::cout << message << " " << message.size() << "\n";
-		if ((numbytes = sendto(sockfd, (void *)message.c_str(), message.size() + 1, 0,
-							   p2->ai_addr, p2->ai_addrlen)) == -1)
-		{
-			perror("talker: sendto");
-			exit(1);
-		}
-		std::cout << "sendto bytes:" << numbytes << "\n";
-	}
+	std::thread t1(listener);
+	std::thread t2(input_thread);
+	std::thread t3(sender);
+	t1.join();
+	t2.join();
+	t3.join();
 
 	freeaddrinfo(servinfo);
 
