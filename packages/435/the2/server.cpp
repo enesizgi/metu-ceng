@@ -57,8 +57,6 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
-	// printf("listener: waiting to recvfrom...\n");
-
 	while (true)
 	{
 		addr_len = sizeof addr;
@@ -70,23 +68,12 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 
-		// std::cout << "Sequence n: " << tmp->seq_number << " Ack: " << tmp->ack << "\n";
-		// printf("listener: got packet from %s\n",
-		// 	   inet_ntop(addr.ss_family,
-		// 				 get_in_addr((struct sockaddr *)&addr),
-		// 				 s, sizeof s));
-		// std::cout << "Port:" << inet_ntop(addr.ss_family, get_port((struct sockaddr *)&addr), s, sizeof s) << "\n";
-		// std::cout << "Port:" << ntohs(get_port((struct sockaddr *)&addr)) << "\n";
-		// printf("listener: packet is %d bytes long\n", numbytes);
-		// printf("listener: packet contains \"%s\"\n", tmp->payload);
-
 		if (is_first_rcv == 0)
 		{
 			std::thread t1(sender);
 			t1.detach();
 
 			std::thread t2(input_thread);
-			// std::cout << "input thread2 \n";
 			t2.detach();
 
 			std::thread t4(printer);
@@ -113,11 +100,9 @@ int main(int argc, char *argv[])
 		{
 			continue;
 		}
-		// m1.lock();
 
 		if (tmp->ack >= 1)
 		{
-			// std::cout << "Ack " << tmp->ack << " Seq: " << tmp->seq_number << "\n";
 			if (tmp->seq_number >= (server_window_start + WINDOW_SIZE))
 			{
 				continue;
@@ -145,7 +130,6 @@ int main(int argc, char *argv[])
 
 		if (tmp->ack == 0)
 		{
-			// std::cout << "New packet " << tmp->seq_number << "\n";
 			if (tmp->seq_number >= (client_window_start + WINDOW_SIZE))
 			{
 				continue;
@@ -155,11 +139,6 @@ int main(int argc, char *argv[])
 				buf_client.resize(tmp->seq_number * 2 + 1, NULL);
 				is_printed.resize(tmp->seq_number * 2 + 1, false);
 			}
-			// if (!is_printed[tmp->seq_number])
-			// {
-			// 	std::cout << tmp->payload;
-			// 	is_printed[tmp->seq_number] = true;
-			// }
 			buf_client[tmp->seq_number] = tmp;
 			tmp->finished = 1;
 			for (int i = client_window_start; i < buf_client.size(); i++)
@@ -176,8 +155,6 @@ int main(int argc, char *argv[])
 				break;
 			}
 
-			// std::cout << "sendto bytes:" << numbytes << "\n";
-			// std::cout << "Send ack\n";
 			struct packet *ack_package = new packet;
 			ack_package->ack = 1;
 			strcpy(ack_package->payload, tmp->payload);
@@ -189,9 +166,7 @@ int main(int argc, char *argv[])
 				perror("talker: sendto");
 				exit(1);
 			}
-			// std::cout << "ack sent bytes:" << numbytes << " seq: " << ack_package->seq_number << " ack: " << ack_package->ack << "\n";
 		}
-		// m1.unlock();
 	}
 
 	freeaddrinfo(servinfo);

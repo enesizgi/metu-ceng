@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET; // set to AF_INET to use IPv4
 	hints.ai_socktype = SOCK_DGRAM;
-	// std::cout << argv[2] << " " << argv[3] << "\n";
 
 	if ((rv = getaddrinfo(argv[1], argv[3], &hints, &servinfo)) != 0)
 	{
@@ -99,7 +98,6 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(servinfo);
 
-	// printf("talker: sent %d bytes to %s\n", numbytes, argv[1]);
 	close(sockfd);
 
 	return 0;
