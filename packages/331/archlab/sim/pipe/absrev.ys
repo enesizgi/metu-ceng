@@ -3,6 +3,14 @@
 # absrev.ys - Reverse a src block of len words to dst.
 # Return the sum of absolute values of words contained in src.
 #
+
+# MUHAMMED ENES İZGİ
+# SECTION 1
+# 2310142
+# I have created different versions of the Loop function. Loop function tries to process as many items as possible in one loop. 
+# For example, Loop7 function process 7 item at once. It is good for pipelining because 7 registers will run some mrmovq and rmmovq 
+# simultaneously. Pipeline will be balanced and this will reduce the waiting time of the pipeline processor.
+
 # Include your name and ID here.
 # Describe how and why you modified the baseline code.
 ##################################################################
@@ -20,16 +28,11 @@ absrev:
     # all this for dst_rev = dst + len - 1
     #replaced xorq instruction and 1 andq instruction with a rrmovq inst. to reduce instructions by 1. No need to equal to 0
     rrmovq %rdx, %rcx   # add len eight times
-    # leaq (%rdx), %rcx
+
     # I summed the rcx register with itself so i doubled the register value in every cycle
     addq %rcx, %rcx
     addq %rcx, %rcx
     addq %rcx, %rcx
-    # leaq (%rdx), %rcx
-    # leaq (%rdx), %rcx
-    # leaq (%rdx), %rcx
-
-    # leaq 64(%rcx), %rcx
     addq %rsi, %rcx     # add dst
     leaq -8(%rcx), %rcx      # finally, rcx holds dst_rev
     
