@@ -13,6 +13,12 @@
 ## absrev.ys code!
 ## This file also contains an implementation of cmpq.
 
+## MUHAMMED ENES İZGİ
+## SECTION 1
+## 2310142
+
+## I have implemented the leaq instruction like I did in the seq-full.hcl file.
+
 ####################################################################
 #    C Include's.  Don't alter these                               #
 ####################################################################
