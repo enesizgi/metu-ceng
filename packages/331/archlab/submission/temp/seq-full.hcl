@@ -9,36 +9,6 @@
 ## for leaq (LEAQ)
 ## Time to add the rest of the logic and make it work!
 
-## MUHAMMED ENES İZGİ
-## SECTION 1
-## 2310142
-
-## Stage leaq C(rB) rA
-
-## Fetch
-#icode:ifun <- M1[PC]
-#rA:rB <- M1[PC+1]
-#valP <- PC + 2
-#instr_valid <- 1
-#need_regids <- 1
-#need_valC <- 1
-
-## Decode
-#valB <- R[rB]
-
-## Execute
-#valE <- valC OP valB
-#Don't set CC
-
-## Memory 
-# Empty
-
-## Write back
-#R[rA] <- valE 
-
-## PC Update
-#PC <- valP
-
 ####################################################################
 #    C Include's.  Don't alter these                               #
 ####################################################################
