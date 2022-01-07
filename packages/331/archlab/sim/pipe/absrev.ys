@@ -10,6 +10,7 @@
 # I have created different versions of the Loop function. Loop function tries to process as many items as possible in one loop. 
 # For example, Loop7 function process 7 item at once. It is good for pipelining because 7 registers will run some mrmovq and rmmovq 
 # simultaneously. Pipeline will be balanced and this will reduce the waiting time of the pipeline processor.
+# (It is loop unrolling!)
 
 # Include your name and ID here.
 # Describe how and why you modified the baseline code.
