@@ -14,23 +14,34 @@ absrev:
 # You can modify this portion
     # Loop header
     xorq %rax,%rax    	# sum = 0;
-    
-    # all this for dst_rev = dst + len - 1
-    xorq %rcx, %rcx     # zero rcx
-    addq %rdx, %rcx     # add len eight times
-    addq %rdx, %rcx
-    addq %rdx, %rcx
-    addq %rdx, %rcx
-    addq %rdx, %rcx
-    addq %rdx, %rcx
-    addq %rdx, %rcx
-    addq %rdx, %rcx
-    irmovq $8, %r8      # for subtracting 8
-    addq %rsi, %rcx     # add dst
-    subq %r8, %rcx      # finally, rcx holds dst_rev
-
     andq %rdx,%rdx    	# len <= 0?
     jle Done            # if so, goto Done:
+
+    # all this for dst_rev = dst + len - 1
+    #replaced xorq instruction and 1 andq instruction with a rrmovq inst. to reduce instructions by 1. No need to equal to 0
+    rrmovq %rdx, %rcx   # add len eight times
+    # leaq (%rdx), %rcx
+    # I summed the rcx register with itself so i doubled the register value in every cycle
+    addq %rcx, %rcx
+    addq %rcx, %rcx
+    addq %rcx, %rcx
+    # leaq (%rdx), %rcx
+    # leaq (%rdx), %rcx
+    # leaq (%rdx), %rcx
+
+    # leaq 64(%rcx), %rcx
+    addq %rsi, %rcx     # add dst
+    leaq -8(%rcx), %rcx      # finally, rcx holds dst_rev
+    
+    icmpq $5, %rdx
+    jge Loop4
+
+    jmp Loop
+
+    # irmovq $1, %r8
+    # andq %rdx, %r8
+    # je Loop2
+
 Loop:    
     mrmovq (%rdi), %r10 # read val from src...
     rmmovq %r10, (%rcx) # ...and store it to dst
@@ -41,13 +52,105 @@ Loop:
     subq %r9, %r10      # negation achieved!
 Positive:
     addq %r10, %rax     # sum += absval
-    irmovq $1, %r10
-    subq %r10, %rdx    	# len--
-    irmovq $8, %r10
-    addq %r10, %rdi    	# src++
-    subq %r10, %rcx    	# dst_rev--
+    leaq -1(%rdx), %rdx
+    leaq 8(%rdi), %rdi    	# src++
+    leaq -8(%rcx), %rcx    	# dst_rev--
     andq %rdx,%rdx    	# len > 0?
     jg Loop             # if so, goto Loop:
+    ret
+
+Loop2:    
+    mrmovq (%rdi), %r10 # read val from src...
+    mrmovq 8(%rdi), %r11 # read val from src...
+    rmmovq %r10, (%rcx) # ...and store it to dst
+    rmmovq %r11, -8(%rcx) # ...and store it to dst
+    andq %r10, %r10
+    jge Decision2 # positive
+Decision1: #r10 negative
+    andq %r11, %r11
+    jge Loop2_01
+    rrmovq %r10, %r9    # temporary move
+    xorq %r10, %r10     # zero r10
+    subq %r9, %r10      # negation achieved!
+    rrmovq %r11, %r9    # temporary move
+    xorq %r11, %r11     # zero r10
+    subq %r9, %r11      # negation achieved!
+    jmp Final2
+Loop2_01:
+    rrmovq %r10, %r9    # temporary move
+    xorq %r10, %r10     # zero r10
+    subq %r9, %r10      # negation achieved!
+    jmp Final2
+Decision2:
+    andq %r11, %r11
+    jge Final2
+    rrmovq %r11, %r9    # temporary move
+    xorq %r11, %r11     # zero r10
+    subq %r9, %r11      # negation achieved!
+Final2:
+    addq %r10, %rax
+    addq %r11, %rax
+    leaq -2(%rdx), %rdx
+    leaq 16(%rdi), %rdi    	# src++
+    leaq -16(%rcx), %rcx    	# dst_rev--
+    icmpq $1, %rdx
+    je Loop
+    andq %rdx,%rdx    	# len > 0?
+    jg Loop2            # if so, goto Loop:
+    ret
+
+Loop4:
+    mrmovq (%rdi), %r10 # read val from src...
+    mrmovq 8(%rdi), %r11 # read val from src...
+    mrmovq 16(%rdi), %r12 # read val from src...
+    mrmovq 24(%rdi), %r13 # read val from src...
+    rmmovq %r10, (%rcx) # ...and store it to dst
+    rmmovq %r11, -8(%rcx) # ...and store it to dst
+    rmmovq %r12, -16(%rcx) # ...and store it to dst
+    rmmovq %r13, -24(%rcx) # ...and store it to dst
+    andq %r10, %r10
+    jge Decision3_1 # positive
+    rrmovq %r10, %r9    # temporary move
+    xorq %r10, %r10     # zero r10
+    subq %r9, %r10      # negation achieved!
+Decision3_1:
+    addq %r10, %rax
+    andq %r11, %r11
+    jge Decision3_2 # positive
+    rrmovq %r11, %r9    # temporary move
+    xorq %r11, %r11     # zero r10
+    subq %r9, %r11      # negation achieved!
+Decision3_2:
+    addq %r11, %rax
+    andq %r12, %r12
+    jge Decision3_3 # positive
+    rrmovq %r12, %r9    # temporary move
+    xorq %r12, %r12     # zero r10
+    subq %r9, %r12      # negation achieved!
+Decision3_3:
+    addq %r12, %rax
+    andq %r13, %r13
+    jge Decision3_4
+    rrmovq %r13, %r9    # temporary move
+    xorq %r13, %r13     # zero r10
+    subq %r9, %r13      # negation achieved!
+Decision3_4:
+    addq %r13, %rax
+    leaq -4(%rdx), %rdx
+    leaq 32(%rdi), %rdi    	# src++
+    leaq -32(%rcx), %rcx    	# dst_rev--
+    icmpq $4, %rdx
+    jle Loop
+    andq %rdx,%rdx    	# len > 0?
+    jg Loop4            # if so, goto Loop:
+    ret
+
+abs_fnc:
+    rrmovq %rdi, %r9    # temporary move
+    xorq %rdi, %rdi     # zero r10
+    subq %r9, %rdi      # negation achieved!
+    ret
+
 ##################################################################
 # Do not modify the following section of code
 # Function epilogue.
