@@ -33,11 +33,13 @@ absrev:
     addq %rsi, %rcx     # add dst
     leaq -8(%rcx), %rcx      # finally, rcx holds dst_rev
     
-    icmpq $8, %rdx
+    icmpq $7, %rdx
     jge Loop7
-    icmpq $5, %rdx
+    icmpq $4, %rdx
     jge Loop4
-    jmp Loop
+    icmpq $2, %rdx
+    jge Loop2
+
 
 Loop:    
     mrmovq (%rdi), %r10 # read val from src...
@@ -49,11 +51,6 @@ Loop:
     subq %r9, %r10      # negation achieved!
 Positive:
     addq %r10, %rax     # sum += absval
-    leaq -1(%rdx), %rdx
-    leaq 8(%rdi), %rdi    	# src++
-    leaq -8(%rcx), %rcx    	# dst_rev--
-    andq %rdx,%rdx    	# len > 0?
-    jg Loop             # if so, goto Loop:
     ret
 
 Loop2:
@@ -62,26 +59,26 @@ Loop2:
     rmmovq %r10, (%rcx) # ...and store it to dst
     rmmovq %r11, -8(%rcx) # ...and store it to dst
     andq %r10, %r10
-    jge Decision3_1 # positive
+    jge Decision2_1 # positive
     rrmovq %r10, %r9    # temporary move
     xorq %r10, %r10     # zero r10
     subq %r9, %r10      # negation achieved!
-Decision3_1:
+Decision2_1:
     addq %r10, %rax
     andq %r11, %r11
-    jge Decision3_2 # positive
+    jge Decision2_2 # positive
     rrmovq %r11, %r9    # temporary move
     xorq %r11, %r11     # zero r10
     subq %r9, %r11      # negation achieved!
-Decision3_2:
+Decision2_2:
     addq %r11, %rax
     leaq -2(%rdx), %rdx
     leaq 16(%rdi), %rdi    	# src++
     leaq -16(%rcx), %rcx    	# dst_rev--
-    icmpq $4, %rdx
-    jle Loop
-    andq %rdx,%rdx    	# len > 0?
-    jg Loop4            # if so, goto Loop:
+    icmpq $2, %rdx,
+    jge Loop2
+    icmpq $0, %rdx,
+    jg Loop            # if so, goto Loop:
     ret
 
 
@@ -126,9 +123,11 @@ Decision3_4:
     leaq 32(%rdi), %rdi    	# src++
     leaq -32(%rcx), %rcx    	# dst_rev--
     icmpq $4, %rdx
-    jle Loop
-    andq %rdx,%rdx    	# len > 0?
-    jg Loop4            # if so, goto Loop:
+    jge Loop4
+    icmpq $2, %rdx,
+    jge Loop2
+    icmpq $0, %rdx,
+    jg Loop            # if so, goto Loop:
     ret
 
 Loop7:
@@ -199,13 +198,14 @@ Decision8_7:
     leaq -7(%rdx), %rdx
     leaq 56(%rdi), %rdi    	# src++
     leaq -56(%rcx), %rcx    	# dst_rev--
-    icmpq $8, %rdx
+    icmpq $7, %rdx
     jge Loop7
-    icmpq $5, %rdx
+    icmpq $4, %rdx
     jge Loop4
-    jmp Loop
-    andq %rdx,%rdx    	# len > 0?
-    jg Loop7            # if so, goto Loop:
+    icmpq $2, %rdx,
+    jge Loop2
+    icmpq $0, %rdx,
+    jg Loop            # if so, goto Loop:
     ret
 
 
