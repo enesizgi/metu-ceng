@@ -33,14 +33,11 @@ absrev:
     addq %rsi, %rcx     # add dst
     leaq -8(%rcx), %rcx      # finally, rcx holds dst_rev
     
+    icmpq $8, %rdx
+    jge Loop8
     icmpq $5, %rdx
     jge Loop4
-
     jmp Loop
-
-    # irmovq $1, %r8
-    # andq %rdx, %r8
-    # je Loop2
 
 Loop:    
     mrmovq (%rdi), %r10 # read val from src...
@@ -57,46 +54,6 @@ Positive:
     leaq -8(%rcx), %rcx    	# dst_rev--
     andq %rdx,%rdx    	# len > 0?
     jg Loop             # if so, goto Loop:
-    ret
-
-Loop2:    
-    mrmovq (%rdi), %r10 # read val from src...
-    mrmovq 8(%rdi), %r11 # read val from src...
-    rmmovq %r10, (%rcx) # ...and store it to dst
-    rmmovq %r11, -8(%rcx) # ...and store it to dst
-    andq %r10, %r10
-    jge Decision2 # positive
-Decision1: #r10 negative
-    andq %r11, %r11
-    jge Loop2_01
-    rrmovq %r10, %r9    # temporary move
-    xorq %r10, %r10     # zero r10
-    subq %r9, %r10      # negation achieved!
-    rrmovq %r11, %r9    # temporary move
-    xorq %r11, %r11     # zero r10
-    subq %r9, %r11      # negation achieved!
-    jmp Final2
-Loop2_01:
-    rrmovq %r10, %r9    # temporary move
-    xorq %r10, %r10     # zero r10
-    subq %r9, %r10      # negation achieved!
-    jmp Final2
-Decision2:
-    andq %r11, %r11
-    jge Final2
-    rrmovq %r11, %r9    # temporary move
-    xorq %r11, %r11     # zero r10
-    subq %r9, %r11      # negation achieved!
-Final2:
-    addq %r10, %rax
-    addq %r11, %rax
-    leaq -2(%rdx), %rdx
-    leaq 16(%rdi), %rdi    	# src++
-    leaq -16(%rcx), %rcx    	# dst_rev--
-    icmpq $1, %rdx
-    je Loop
-    andq %rdx,%rdx    	# len > 0?
-    jg Loop2            # if so, goto Loop:
     ret
 
 Loop4:
@@ -144,6 +101,82 @@ Decision3_4:
     andq %rdx,%rdx    	# len > 0?
     jg Loop4            # if so, goto Loop:
     ret
+
+Loop8:
+    mrmovq (%rdi), %r8 # read val from src...
+    mrmovq 8(%rdi), %r10 # read val from src...
+    mrmovq 16(%rdi), %r11 # read val from src...
+    mrmovq 24(%rdi), %r12 # read val from src...
+    mrmovq 32(%rdi), %r13 # read val from src...
+    mrmovq 40(%rdi), %r14 # read val from src...
+    mrmovq 48(%rdi), %rbx # read val from src...
+    rmmovq %r8, (%rcx) # ...and store it to dst
+    rmmovq %r10, -8(%rcx) # ...and store it to dst
+    rmmovq %r11, -16(%rcx) # ...and store it to dst
+    rmmovq %r12, -24(%rcx) # ...and store it to dst
+    rmmovq %r13, -32(%rcx) # ...and store it to dst
+    rmmovq %r14, -40(%rcx) # ...and store it to dst
+    rmmovq %rbx, -48(%rcx) # ...and store it to dst
+    andq %r10, %r10
+    jge Decision8_1 # positive
+    rrmovq %r10, %r9    # temporary move
+    xorq %r10, %r10     # zero r10
+    subq %r9, %r10      # negation achieved!
+Decision8_1:
+    addq %r10, %rax
+    andq %r11, %r11
+    jge Decision8_2 # positive
+    rrmovq %r11, %r9    # temporary move
+    xorq %r11, %r11     # zero r10
+    subq %r9, %r11      # negation achieved!
+Decision8_2:
+    addq %r11, %rax
+    andq %r12, %r12
+    jge Decision8_3 # positive
+    rrmovq %r12, %r9    # temporary move
+    xorq %r12, %r12     # zero r10
+    subq %r9, %r12      # negation achieved!
+Decision8_3:
+    addq %r12, %rax
+    andq %r13, %r13
+    jge Decision8_4
+    rrmovq %r13, %r9    # temporary move
+    xorq %r13, %r13     # zero r10
+    subq %r9, %r13      # negation achieved!
+Decision8_4:
+    addq %r13, %rax
+    andq %r14, %r14
+    jge Decision8_5
+    rrmovq %r14, %r9    # temporary move
+    xorq %r14, %r14     # zero r10
+    subq %r9, %r14      # negation achieved!
+Decision8_5:
+    addq %r14, %rax
+    andq %r8, %r8
+    jge Decision8_6
+    rrmovq %r8, %r9    # temporary move
+    xorq %r8, %r8     # zero r10
+    subq %r9, %r8      # negation achieved!
+Decision8_6:
+    addq %r8, %rax
+    andq %rbx, %rbx
+    jge Decision8_7
+    rrmovq %rbx, %r9    # temporary move
+    xorq %rbx, %rbx     # zero r10
+    subq %r9, %rbx      # negation achieved!
+
+Decision8_7:
+    addq %rbx, %rax
+    leaq -7(%rdx), %rdx
+    leaq 56(%rdi), %rdi    	# src++
+    leaq -56(%rcx), %rcx    	# dst_rev--
+    icmpq $7, %rdx
+    jle Loop
+    andq %rdx,%rdx    	# len > 0?
+    jg Loop8            # if so, goto Loop:
+    ret
+
+
 
 abs_fnc:
     rrmovq %rdi, %r9    # temporary move
