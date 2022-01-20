@@ -635,15 +635,11 @@ void blur_enes(int dim, float *img, float *flt, float *dst)
             float temp4 = t_img0[3] * t_flt0[3];
             float temp5 = t_img0[4] * t_flt0[4];
 
-            // dst[idimj] += temp1 + temp2 + temp3 + temp4 + temp5;
-
             temp1 += t_img1[0] * t_flt1[0];
             temp2 += t_img1[1] * t_flt1[1];
             temp3 += t_img1[2] * t_flt1[2];
             temp4 += t_img1[3] * t_flt1[3];
             temp5 += t_img1[4] * t_flt1[4];
-
-            // dst[idimj] += temp1 + temp2 + temp3 + temp4 + temp5;
 
             temp1 += t_img2[0] * t_flt2[0];
             temp2 += t_img2[1] * t_flt2[1];
@@ -651,15 +647,11 @@ void blur_enes(int dim, float *img, float *flt, float *dst)
             temp4 += t_img2[3] * t_flt2[3];
             temp5 += t_img2[4] * t_flt2[4];
 
-            // dst[idimj] += temp1 + temp2 + temp3 + temp4 + temp5;
-
             temp1 += t_img3[0] * t_flt3[0];
             temp2 += t_img3[1] * t_flt3[1];
             temp3 += t_img3[2] * t_flt3[2];
             temp4 += t_img3[3] * t_flt3[3];
             temp5 += t_img3[4] * t_flt3[4];
-
-            // dst[idimj] += temp1 + temp2 + temp3 + temp4 + temp5;
 
             temp1 += t_img4[0] * t_flt4[0];
             temp2 += t_img4[1] * t_flt4[1];
