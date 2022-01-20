@@ -12,11 +12,11 @@
 team_t team = {
     "Team", /* Team name */
 
-    "Ahmet Buğrahan Budak",    /* First member full name */
-    "e2380236", /* First member id */
+    "Ahmet Buğrahan Budak", /* First member full name */
+    "e2380236",             /* First member id */
 
     "Emre Berk Kaya", /* Second member full name (leave blank if none) */
-    "e2380590",               /* Second member id (leave blank if none) */
+    "e2380590",       /* Second member id (leave blank if none) */
 
     "Muhammed Enes izgi", /* Third member full name (leave blank if none) */
     "e2310142"            /* Third member id (leave blank if none) */
@@ -56,82 +56,6 @@ void naive_fusion(int dim, int *img, int *w, int *dst)
  */
 char fusion_descr[] = "fusion: Current working version";
 void fusion(int dim, int *img, int *w, int *dst)
-{
-    naive_fusion(dim, img, w, dst);
-}
-
-char fusion_descr_enes[] = "fusion: ENES version";
-void fusion_enes(int dim, int *img, int *w, int *dst)
-{
-    int i, j;
-    int dimxdim = dim * dim;
-    int dimxdim2 = dimxdim + dimxdim;
-    int dimxdim3 = dimxdim2 + dimxdim;
-    int t_dim = 0;
-    for (i = 0; i < dim; i++)
-    {
-        for (j = 0; j < dim; j++)
-        {
-            int tdimj = t_dim + j;
-            dst[tdimj] += w[tdimj] * img[tdimj] + w[dimxdim + tdimj] * img[dimxdim + tdimj];
-        }
-        t_dim += dim;
-    }
-
-    t_dim = 0;
-    for (i = 0; i < dim; i++)
-    {
-        for (j = 0; j < dim; j++)
-        {
-            int tdimj = t_dim + j;
-            dst[tdimj] += w[dimxdim2 + tdimj] * img[dimxdim2 + tdimj] + w[dimxdim3 + tdimj] * img[dimxdim3 + tdimj];
-        }
-        t_dim += dim;
-    }
-}
-
-char fusion_descr_enes_2[] = "fusion: ENES2 version";
-void fusion_enes_2(int dim, int *img, int *w, int *dst)
-{
-    int i, j;
-    int dimxdim = dim * dim;
-    int dimxdim2 = dimxdim + dimxdim;
-    int dimxdim3 = dimxdim2 + dimxdim;
-    int t_dim = 0;
-    for (i = 0; i < dim; i++)
-    {
-        // int tdimj = t_dim;
-        // int tdimj2 = t_dim;
-        int tdimjplusdimxdim = t_dim + dimxdim;
-        for (j = 0; j < dim; j++)
-        {
-            int temp1 = w[t_dim] * img[t_dim];
-            int temp2 = w[tdimjplusdimxdim] * img[tdimjplusdimxdim];
-            dst[t_dim] += temp1 + temp2;
-            t_dim++;
-            tdimjplusdimxdim++;
-        }
-        // t_dim += dim;
-    }
-
-    t_dim = 0;
-    for (i = 0; i < dim; i++)
-    {
-        for (j = 0; j < dim; j++)
-        {
-            int tdimj = t_dim + j;
-            int tdimjplusdimxdim2 = tdimj + dimxdim2;
-            int tdimjplusdimxdim3 = tdimj + dimxdim3;
-            int temp1 = w[tdimjplusdimxdim2] * img[tdimjplusdimxdim2];
-            int temp2 = w[tdimjplusdimxdim3] * img[tdimjplusdimxdim3];
-            dst[tdimj] += temp1 + temp2;
-        }
-        t_dim += dim;
-    }
-}
-
-char fusion_descr_enes_3[] = "fusion: ENES3 version";
-void fusion_enes_3(int dim, int *img, int *w, int *dst)
 {
     int i, j, x;
     int dimxdim = dim * dim;
@@ -243,6 +167,76 @@ void fusion_enes_3(int dim, int *img, int *w, int *dst)
                 dst += 32;
             }
         }
+    }
+}
+
+char fusion_descr_enes[] = "fusion: ENES version";
+void fusion_enes(int dim, int *img, int *w, int *dst)
+{
+    int i, j;
+    int dimxdim = dim * dim;
+    int dimxdim2 = dimxdim + dimxdim;
+    int dimxdim3 = dimxdim2 + dimxdim;
+    int t_dim = 0;
+    for (i = 0; i < dim; i++)
+    {
+        for (j = 0; j < dim; j++)
+        {
+            int tdimj = t_dim + j;
+            dst[tdimj] += w[tdimj] * img[tdimj] + w[dimxdim + tdimj] * img[dimxdim + tdimj];
+        }
+        t_dim += dim;
+    }
+
+    t_dim = 0;
+    for (i = 0; i < dim; i++)
+    {
+        for (j = 0; j < dim; j++)
+        {
+            int tdimj = t_dim + j;
+            dst[tdimj] += w[dimxdim2 + tdimj] * img[dimxdim2 + tdimj] + w[dimxdim3 + tdimj] * img[dimxdim3 + tdimj];
+        }
+        t_dim += dim;
+    }
+}
+
+char fusion_descr_enes_2[] = "fusion: ENES2 version";
+void fusion_enes_2(int dim, int *img, int *w, int *dst)
+{
+    int i, j;
+    int dimxdim = dim * dim;
+    int dimxdim2 = dimxdim + dimxdim;
+    int dimxdim3 = dimxdim2 + dimxdim;
+    int t_dim = 0;
+    for (i = 0; i < dim; i++)
+    {
+        // int tdimj = t_dim;
+        // int tdimj2 = t_dim;
+        int tdimjplusdimxdim = t_dim + dimxdim;
+        for (j = 0; j < dim; j++)
+        {
+            int temp1 = w[t_dim] * img[t_dim];
+            int temp2 = w[tdimjplusdimxdim] * img[tdimjplusdimxdim];
+            dst[t_dim] += temp1 + temp2;
+            t_dim++;
+            tdimjplusdimxdim++;
+        }
+        // t_dim += dim;
+    }
+
+    t_dim = 0;
+    for (i = 0; i < dim; i++)
+    {
+        for (j = 0; j < dim; j++)
+        {
+            int tdimj = t_dim + j;
+            int tdimjplusdimxdim2 = tdimj + dimxdim2;
+            int tdimjplusdimxdim3 = tdimj + dimxdim3;
+            int temp1 = w[tdimjplusdimxdim2] * img[tdimjplusdimxdim2];
+            int temp2 = w[tdimjplusdimxdim3] * img[tdimjplusdimxdim3];
+            dst[tdimj] += temp1 + temp2;
+        }
+        t_dim += dim;
     }
 }
 
@@ -429,7 +423,6 @@ void register_fusion_functions()
     add_fusion_function(&fusion, fusion_descr);
     // add_fusion_function(&fusion_enes, fusion_descr_enes);
     // add_fusion_function(&fusion_enes_2, fusion_descr_enes_2);
-    add_fusion_function(&fusion_enes_3, fusion_descr_enes_3);
     // add_fusion_function(&fusion_enes_4, fusion_descr_enes_4);
     // add_fusion_function(&fusion_enes_5, fusion_descr_enes_5);
     /* ... Register additional test functions here */
@@ -474,7 +467,65 @@ void naive_blur(int dim, float *img, float *flt, float *dst)
 char blur_descr[] = "blur: Current working version";
 void blur(int dim, float *img, float *flt, float *dst)
 {
-    naive_blur(dim, img, flt, dst);
+    int i, j;
+    int dimminus4 = dim - 4;
+
+    for (i = 0; i < dimminus4; i++)
+    {
+        int idim = i * dim;
+        for (j = 0; j < dimminus4; j++)
+        {
+            int idimj = idim + j;
+            int kdim0 = 0;
+            int kdim1 = dim;
+            int kdim2 = 2 * dim;
+            int kdim3 = 3 * dim;
+            int kdim4 = 4 * dim;
+            float *t_img_main = img + idimj;
+            float *t_img0 = t_img_main + kdim0;
+            float *t_img1 = t_img_main + kdim1;
+            float *t_img2 = t_img_main + kdim2;
+            float *t_img3 = t_img_main + kdim3;
+            float *t_img4 = t_img_main + kdim4;
+            float *t_flt0 = flt + kdim0;
+            float *t_flt1 = flt + kdim1;
+            float *t_flt2 = flt + kdim2;
+            float *t_flt3 = flt + kdim3;
+            float *t_flt4 = flt + kdim4;
+
+            float temp1 = t_img0[0] * t_flt0[0];
+            float temp2 = t_img0[1] * t_flt0[1];
+            float temp3 = t_img0[2] * t_flt0[2];
+            float temp4 = t_img0[3] * t_flt0[3];
+            float temp5 = t_img0[4] * t_flt0[4];
+
+            temp1 += t_img1[0] * t_flt1[0];
+            temp2 += t_img1[1] * t_flt1[1];
+            temp3 += t_img1[2] * t_flt1[2];
+            temp4 += t_img1[3] * t_flt1[3];
+            temp5 += t_img1[4] * t_flt1[4];
+
+            temp1 += t_img2[0] * t_flt2[0];
+            temp2 += t_img2[1] * t_flt2[1];
+            temp3 += t_img2[2] * t_flt2[2];
+            temp4 += t_img2[3] * t_flt2[3];
+            temp5 += t_img2[4] * t_flt2[4];
+
+            temp1 += t_img3[0] * t_flt3[0];
+            temp2 += t_img3[1] * t_flt3[1];
+            temp3 += t_img3[2] * t_flt3[2];
+            temp4 += t_img3[3] * t_flt3[3];
+            temp5 += t_img3[4] * t_flt3[4];
+
+            temp1 += t_img4[0] * t_flt4[0];
+            temp2 += t_img4[1] * t_flt4[1];
+            temp3 += t_img4[2] * t_flt4[2];
+            temp4 += t_img4[3] * t_flt4[3];
+            temp5 += t_img4[4] * t_flt4[4];
+
+            dst[idimj] += temp1 + temp2 + temp3 + temp4 + temp5;
+        }
+    }
 }
 
 char blur_descr_ijlk[] = "blur: IKJL version";
@@ -594,72 +645,6 @@ void blur_ilkj(int dim, float *img, float *flt, float *dst)
                     dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
                 }
             }
-        }
-    }
-}
-
-char blur_descr_enes[] = "blur: ENES version";
-void blur_enes(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    int dimminus4 = dim - 4;
-
-    for (i = 0; i < dimminus4; i++)
-    {
-        int idim = i * dim;
-        for (j = 0; j < dimminus4; j++)
-        {
-            int idimj = idim + j;
-            int kdim0 = 0;
-            int kdim1 = dim;
-            int kdim2 = 2 * dim;
-            int kdim3 = 3 * dim;
-            int kdim4 = 4 * dim;
-            float *t_img_main = img + idimj;
-            float *t_img0 = t_img_main + kdim0;
-            float *t_img1 = t_img_main + kdim1;
-            float *t_img2 = t_img_main + kdim2;
-            float *t_img3 = t_img_main + kdim3;
-            float *t_img4 = t_img_main + kdim4;
-            float *t_flt0 = flt + kdim0;
-            float *t_flt1 = flt + kdim1;
-            float *t_flt2 = flt + kdim2;
-            float *t_flt3 = flt + kdim3;
-            float *t_flt4 = flt + kdim4;
-
-            float temp1 = t_img0[0] * t_flt0[0];
-            float temp2 = t_img0[1] * t_flt0[1];
-            float temp3 = t_img0[2] * t_flt0[2];
-            float temp4 = t_img0[3] * t_flt0[3];
-            float temp5 = t_img0[4] * t_flt0[4];
-
-            temp1 += t_img1[0] * t_flt1[0];
-            temp2 += t_img1[1] * t_flt1[1];
-            temp3 += t_img1[2] * t_flt1[2];
-            temp4 += t_img1[3] * t_flt1[3];
-            temp5 += t_img1[4] * t_flt1[4];
-
-            temp1 += t_img2[0] * t_flt2[0];
-            temp2 += t_img2[1] * t_flt2[1];
-            temp3 += t_img2[2] * t_flt2[2];
-            temp4 += t_img2[3] * t_flt2[3];
-            temp5 += t_img2[4] * t_flt2[4];
-
-            temp1 += t_img3[0] * t_flt3[0];
-            temp2 += t_img3[1] * t_flt3[1];
-            temp3 += t_img3[2] * t_flt3[2];
-            temp4 += t_img3[3] * t_flt3[3];
-            temp5 += t_img3[4] * t_flt3[4];
-
-            temp1 += t_img4[0] * t_flt4[0];
-            temp2 += t_img4[1] * t_flt4[1];
-            temp3 += t_img4[2] * t_flt4[2];
-            temp4 += t_img4[3] * t_flt4[3];
-            temp5 += t_img4[4] * t_flt4[4];
-
-            dst[idimj] += temp1 + temp2 + temp3 + temp4 + temp5;
         }
     }
 }
@@ -822,6 +807,5 @@ void register_blur_functions()
     // add_blur_function(&blur_jlik, blur_descr_jlik);
     // add_blur_function(&blur_jlki, blur_descr_jlki);
     add_blur_function(&blur_iklj, blur_descr_iklj);
-    add_blur_function(&blur_enes, blur_descr_enes);
     /* ... Register additional test functions here */
 }
