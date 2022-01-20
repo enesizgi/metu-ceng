@@ -467,184 +467,109 @@ void naive_blur(int dim, float *img, float *flt, float *dst)
 char blur_descr[] = "blur: Current working version";
 void blur(int dim, float *img, float *flt, float *dst)
 {
+
     int i, j;
     int dimminus4 = dim - 4;
+    float *cacheArr = (float *)malloc(sizeof(float) * 25);
+    float *t_flt0 = flt;
+    float *t_flt1 = flt + dim;
+    float *t_flt2 = flt + 2 * dim;
+    float *t_flt3 = flt + 3 * dim;
+    float *t_flt4 = flt + 4 * dim;
 
+    for (int x = 0; x < 5; x++)
+    {
+        cacheArr[x] = t_flt0[x];
+        cacheArr[x + 5] = t_flt1[x];
+        cacheArr[x + 10] = t_flt2[x];
+        cacheArr[x + 15] = t_flt3[x];
+        cacheArr[x + 20] = t_flt4[x];
+    }
+
+    int dimx2 = dim * 2;
+    int dimx3 = dim * 3;
+    int dimx4 = dim * 4;
     for (i = 0; i < dimminus4; i++)
     {
         int idim = i * dim;
-        for (j = 0; j < dimminus4; j++)
+        for (j = 0; j < dimminus4; j += 8)
         {
             int idimj = idim + j;
-            int kdim0 = 0;
-            int kdim1 = dim;
-            int kdim2 = 2 * dim;
-            int kdim3 = 3 * dim;
-            int kdim4 = 4 * dim;
             float *t_img_main = img + idimj;
-            float *t_img0 = t_img_main + kdim0;
-            float *t_img1 = t_img_main + kdim1;
-            float *t_img2 = t_img_main + kdim2;
-            float *t_img3 = t_img_main + kdim3;
-            float *t_img4 = t_img_main + kdim4;
-            float *t_flt0 = flt + kdim0;
-            float *t_flt1 = flt + kdim1;
-            float *t_flt2 = flt + kdim2;
-            float *t_flt3 = flt + kdim3;
-            float *t_flt4 = flt + kdim4;
+            float *t_img0 = t_img_main;
+            float *t_img1 = t_img_main + dim;
+            float *t_img2 = t_img_main + dimx2;
+            float *t_img3 = t_img_main + dimx3;
+            float *t_img4 = t_img_main + dimx4;
 
-            float temp1 = t_img0[0] * t_flt0[0];
-            float temp2 = t_img0[1] * t_flt0[1];
-            float temp3 = t_img0[2] * t_flt0[2];
-            float temp4 = t_img0[3] * t_flt0[3];
-            float temp5 = t_img0[4] * t_flt0[4];
-
-            temp1 += t_img1[0] * t_flt1[0];
-            temp2 += t_img1[1] * t_flt1[1];
-            temp3 += t_img1[2] * t_flt1[2];
-            temp4 += t_img1[3] * t_flt1[3];
-            temp5 += t_img1[4] * t_flt1[4];
-
-            temp1 += t_img2[0] * t_flt2[0];
-            temp2 += t_img2[1] * t_flt2[1];
-            temp3 += t_img2[2] * t_flt2[2];
-            temp4 += t_img2[3] * t_flt2[3];
-            temp5 += t_img2[4] * t_flt2[4];
-
-            temp1 += t_img3[0] * t_flt3[0];
-            temp2 += t_img3[1] * t_flt3[1];
-            temp3 += t_img3[2] * t_flt3[2];
-            temp4 += t_img3[3] * t_flt3[3];
-            temp5 += t_img3[4] * t_flt3[4];
-
-            temp1 += t_img4[0] * t_flt4[0];
-            temp2 += t_img4[1] * t_flt4[1];
-            temp3 += t_img4[2] * t_flt4[2];
-            temp4 += t_img4[3] * t_flt4[3];
-            temp5 += t_img4[4] * t_flt4[4];
+            float temp1 = (t_img0[0] * cacheArr[0]) + (t_img0[1] * cacheArr[1]) + (t_img0[2] * cacheArr[2]) + (t_img0[3] * cacheArr[3]) + (t_img0[4] * cacheArr[4]);
+            float temp2 = (t_img1[0] * cacheArr[5]) + (t_img1[1] * cacheArr[6]) + (t_img1[2] * cacheArr[7]) + (t_img1[3] * cacheArr[8]) + (t_img1[4] * cacheArr[9]);
+            float temp3 = (t_img2[0] * cacheArr[10]) + (t_img2[1] * cacheArr[11]) + (t_img2[2] * cacheArr[12]) + (t_img2[3] * cacheArr[13]) + (t_img2[4] * cacheArr[14]);
+            float temp4 = (t_img3[0] * cacheArr[15]) + (t_img3[1] * cacheArr[16]) + (t_img3[2] * cacheArr[17]) + (t_img3[3] * cacheArr[18]) + (t_img3[4] * cacheArr[19]);
+            float temp5 = (t_img4[0] * cacheArr[20]) + (t_img4[1] * cacheArr[21]) + (t_img4[2] * cacheArr[22]) + (t_img4[3] * cacheArr[23]) + (t_img4[4] * cacheArr[24]);
 
             dst[idimj] += temp1 + temp2 + temp3 + temp4 + temp5;
-        }
-    }
-}
 
-char blur_descr_ijlk[] = "blur: IKJL version";
-void blur_ijlk(int dim, float *img, float *flt, float *dst)
-{
+            temp1 = (t_img0[1] * cacheArr[0]) + (t_img0[2] * cacheArr[1]) + (t_img0[3] * cacheArr[2]) + (t_img0[4] * cacheArr[3]) + (t_img0[5] * cacheArr[4]);
+            temp2 = (t_img1[1] * cacheArr[5]) + (t_img1[2] * cacheArr[6]) + (t_img1[3] * cacheArr[7]) + (t_img1[4] * cacheArr[8]) + (t_img1[5] * cacheArr[9]);
+            temp3 = (t_img2[1] * cacheArr[10]) + (t_img2[2] * cacheArr[11]) + (t_img2[3] * cacheArr[12]) + (t_img2[4] * cacheArr[13]) + (t_img2[5] * cacheArr[14]);
+            temp4 = (t_img3[1] * cacheArr[15]) + (t_img3[2] * cacheArr[16]) + (t_img3[3] * cacheArr[17]) + (t_img3[4] * cacheArr[18]) + (t_img3[5] * cacheArr[19]);
+            temp5 = (t_img4[1] * cacheArr[20]) + (t_img4[2] * cacheArr[21]) + (t_img4[3] * cacheArr[22]) + (t_img4[4] * cacheArr[23]) + (t_img4[5] * cacheArr[24]);
 
-    int i, j, k, l;
+            dst[idimj + 1] += temp1 + temp2 + temp3 + temp4 + temp5;
 
-    int dimminus4 = dim - 4;
+            temp1 = (t_img0[2] * cacheArr[0]) + (t_img0[3] * cacheArr[1]) + (t_img0[4] * cacheArr[2]) + (t_img0[5] * cacheArr[3]) + (t_img0[6] * cacheArr[4]);
+            temp2 = (t_img1[2] * cacheArr[5]) + (t_img1[3] * cacheArr[6]) + (t_img1[4] * cacheArr[7]) + (t_img1[5] * cacheArr[8]) + (t_img1[6] * cacheArr[9]);
+            temp3 = (t_img2[2] * cacheArr[10]) + (t_img2[3] * cacheArr[11]) + (t_img2[4] * cacheArr[12]) + (t_img2[5] * cacheArr[13]) + (t_img2[6] * cacheArr[14]);
+            temp4 = (t_img3[2] * cacheArr[15]) + (t_img3[3] * cacheArr[16]) + (t_img3[4] * cacheArr[17]) + (t_img3[5] * cacheArr[18]) + (t_img3[6] * cacheArr[19]);
+            temp5 = (t_img4[2] * cacheArr[20]) + (t_img4[3] * cacheArr[21]) + (t_img4[4] * cacheArr[22]) + (t_img4[5] * cacheArr[23]) + (t_img4[6] * cacheArr[24]);
 
-    for (i = 0; i < dimminus4; i++)
-    {
-        for (j = 0; j < dimminus4; j++)
-        {
-            for (l = 0; l < 5; l++)
+            dst[idimj + 2] += temp1 + temp2 + temp3 + temp4 + temp5;
+
+            temp1 = (t_img0[3] * cacheArr[0]) + (t_img0[4] * cacheArr[1]) + (t_img0[5] * cacheArr[2]) + (t_img0[6] * cacheArr[3]) + (t_img0[7] * cacheArr[4]);
+            temp2 = (t_img1[3] * cacheArr[5]) + (t_img1[4] * cacheArr[6]) + (t_img1[5] * cacheArr[7]) + (t_img1[6] * cacheArr[8]) + (t_img1[7] * cacheArr[9]);
+            temp3 = (t_img2[3] * cacheArr[10]) + (t_img2[4] * cacheArr[11]) + (t_img2[5] * cacheArr[12]) + (t_img2[6] * cacheArr[13]) + (t_img2[7] * cacheArr[14]);
+            temp4 = (t_img3[3] * cacheArr[15]) + (t_img3[4] * cacheArr[16]) + (t_img3[5] * cacheArr[17]) + (t_img3[6] * cacheArr[18]) + (t_img3[7] * cacheArr[19]);
+            temp5 = (t_img4[3] * cacheArr[20]) + (t_img4[4] * cacheArr[21]) + (t_img4[5] * cacheArr[22]) + (t_img4[6] * cacheArr[23]) + (t_img4[7] * cacheArr[24]);
+
+            dst[idimj + 3] += temp1 + temp2 + temp3 + temp4 + temp5;
+
+            if (j + 8 > dimminus4)
             {
-                for (k = 0; k < 5; k++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
+                break;
             }
-        }
-    }
-}
 
-char blur_descr_ikjl[] = "blur: IKJL version";
-void blur_ikjl(int dim, float *img, float *flt, float *dst)
-{
+            temp1 = (t_img0[4] * cacheArr[0]) + (t_img0[5] * cacheArr[1]) + (t_img0[6] * cacheArr[2]) + (t_img0[7] * cacheArr[3]) + (t_img0[8] * cacheArr[4]);
+            temp2 = (t_img1[4] * cacheArr[5]) + (t_img1[5] * cacheArr[6]) + (t_img1[6] * cacheArr[7]) + (t_img1[7] * cacheArr[8]) + (t_img1[8] * cacheArr[9]);
+            temp3 = (t_img2[4] * cacheArr[10]) + (t_img2[5] * cacheArr[11]) + (t_img2[6] * cacheArr[12]) + (t_img2[7] * cacheArr[13]) + (t_img2[8] * cacheArr[14]);
+            temp4 = (t_img3[4] * cacheArr[15]) + (t_img3[5] * cacheArr[16]) + (t_img3[6] * cacheArr[17]) + (t_img3[7] * cacheArr[18]) + (t_img3[8] * cacheArr[19]);
+            temp5 = (t_img4[4] * cacheArr[20]) + (t_img4[5] * cacheArr[21]) + (t_img4[6] * cacheArr[22]) + (t_img4[7] * cacheArr[23]) + (t_img4[8] * cacheArr[24]);
 
-    int i, j, k, l;
+            dst[idimj + 4] += temp1 + temp2 + temp3 + temp4 + temp5;
 
-    int dimminus4 = dim - 4;
+            temp1 = (t_img0[5] * cacheArr[0]) + (t_img0[6] * cacheArr[1]) + (t_img0[7] * cacheArr[2]) + (t_img0[8] * cacheArr[3]) + (t_img0[9] * cacheArr[4]);
+            temp2 = (t_img1[5] * cacheArr[5]) + (t_img1[6] * cacheArr[6]) + (t_img1[7] * cacheArr[7]) + (t_img1[8] * cacheArr[8]) + (t_img1[9] * cacheArr[9]);
+            temp3 = (t_img2[5] * cacheArr[10]) + (t_img2[6] * cacheArr[11]) + (t_img2[7] * cacheArr[12]) + (t_img2[8] * cacheArr[13]) + (t_img2[9] * cacheArr[14]);
+            temp4 = (t_img3[5] * cacheArr[15]) + (t_img3[6] * cacheArr[16]) + (t_img3[7] * cacheArr[17]) + (t_img3[8] * cacheArr[18]) + (t_img3[9] * cacheArr[19]);
+            temp5 = (t_img4[5] * cacheArr[20]) + (t_img4[6] * cacheArr[21]) + (t_img4[7] * cacheArr[22]) + (t_img4[8] * cacheArr[23]) + (t_img4[9] * cacheArr[24]);
 
-    for (i = 0; i < dimminus4; i++)
-    {
-        for (k = 0; k < 5; k++)
-        {
-            for (j = 0; j < dimminus4; j++)
-            {
-                for (l = 0; l < 5; l++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
-            }
-        }
-    }
-}
+            dst[idimj + 5] += temp1 + temp2 + temp3 + temp4 + temp5;
 
-char blur_descr_iklj[] = "blur: IKLJ_edited version";
-void blur_iklj(int dim, float *img, float *flt, float *dst)
-{
+            temp1 = (t_img0[6] * cacheArr[0]) + (t_img0[7] * cacheArr[1]) + (t_img0[8] * cacheArr[2]) + (t_img0[9] * cacheArr[3]) + (t_img0[10] * cacheArr[4]);
+            temp2 = (t_img1[6] * cacheArr[5]) + (t_img1[7] * cacheArr[6]) + (t_img1[8] * cacheArr[7]) + (t_img1[9] * cacheArr[8]) + (t_img1[10] * cacheArr[9]);
+            temp3 = (t_img2[6] * cacheArr[10]) + (t_img2[7] * cacheArr[11]) + (t_img2[8] * cacheArr[12]) + (t_img2[9] * cacheArr[13]) + (t_img2[10] * cacheArr[14]);
+            temp4 = (t_img3[6] * cacheArr[15]) + (t_img3[7] * cacheArr[16]) + (t_img3[8] * cacheArr[17]) + (t_img3[9] * cacheArr[18]) + (t_img3[10] * cacheArr[19]);
+            temp5 = (t_img4[6] * cacheArr[20]) + (t_img4[7] * cacheArr[21]) + (t_img4[8] * cacheArr[22]) + (t_img4[9] * cacheArr[23]) + (t_img4[10] * cacheArr[24]);
 
-    int i, j, k, l;
+            dst[idimj + 6] += temp1 + temp2 + temp3 + temp4 + temp5;
 
-    int dimminus4 = dim - 4;
+            temp1 = (t_img0[7] * cacheArr[0]) + (t_img0[8] * cacheArr[1]) + (t_img0[9] * cacheArr[2]) + (t_img0[10] * cacheArr[3]) + (t_img0[11] * cacheArr[4]);
+            temp2 = (t_img1[7] * cacheArr[5]) + (t_img1[8] * cacheArr[6]) + (t_img1[9] * cacheArr[7]) + (t_img1[10] * cacheArr[8]) + (t_img1[11] * cacheArr[9]);
+            temp3 = (t_img2[7] * cacheArr[10]) + (t_img2[8] * cacheArr[11]) + (t_img2[9] * cacheArr[12]) + (t_img2[10] * cacheArr[13]) + (t_img2[11] * cacheArr[14]);
+            temp4 = (t_img3[7] * cacheArr[15]) + (t_img3[8] * cacheArr[16]) + (t_img3[9] * cacheArr[17]) + (t_img3[10] * cacheArr[18]) + (t_img3[11] * cacheArr[19]);
+            temp5 = (t_img4[7] * cacheArr[20]) + (t_img4[8] * cacheArr[21]) + (t_img4[9] * cacheArr[22]) + (t_img4[10] * cacheArr[23]) + (t_img4[11] * cacheArr[24]);
 
-    for (i = 0; i < dimminus4; i++)
-    {
-        int idim = i * dim;
-        for (k = 0; k < 5; k++)
-        {
-            int kdim = k * dim;
-            for (l = 0; l < 5; l++)
-            {
-                int kdiml = kdim + l;
-                int idimj = idim;
-                for (j = 0; j < dimminus4; j++)
-                {
-                    dst[idimj] = dst[idimj] + img[kdiml + idimj] * flt[kdiml];
-                    idimj++;
-                }
-            }
-        }
-    }
-}
-char blur_descr_iljk[] = "blur: ILJK version";
-void blur_iljk(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    int dimminus4 = dim - 4;
-
-    for (i = 0; i < dimminus4; i++)
-    {
-        int idim = i * dim;
-        for (l = 0; l < 5; l++)
-        {
-            for (j = 0; j < dimminus4; j++)
-            {
-                int idimj = idim + j;
-                for (k = 0; k < 5; k++)
-                {
-                    dst[idimj] = dst[idimj] + img[k * dim + idimj + l] * flt[k * dim + l];
-                }
-            }
-        }
-    }
-}
-
-char blur_descr_ilkj[] = "blur: ILKJ version";
-void blur_ilkj(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    int dimminus4 = dim - 4;
-
-    for (i = 0; i < dimminus4; i++)
-    {
-        for (l = 0; l < 5; l++)
-        {
-            for (k = 0; k < 5; k++)
-            {
-                for (j = 0; j < dimminus4; j++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
-            }
+            dst[idimj + 7] += temp1 + temp2 + temp3 + temp4 + temp5;
         }
     }
 }
@@ -657,155 +582,9 @@ void blur_ilkj(int dim, float *img, float *flt, float *dst)
  *     registered test function.
  *********************************************************************/
 
-char blur_descr_jikl[] = "blur: jikl version";
-void blur_jikl(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    for (j = 0; j < dim - 5 + 1; j++)
-    {
-        for (i = 0; i < dim - 5 + 1; i++)
-        {
-            for (k = 0; k < 5; k++)
-            {
-                for (l = 0; l < 5; l++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
-            }
-        }
-    }
-}
-
-char blur_descr_jilk[] = "blur: JILK version";
-void blur_jilk(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    int dimminus4 = dim - 4;
-
-    for (j = 0; j < dimminus4; j++)
-    {
-        for (i = 0; i < dimminus4; i++)
-        {
-            for (l = 0; l < 5; l++)
-            {
-                for (k = 0; k < 5; k++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
-            }
-        }
-    }
-}
-
-char blur_descr_jkil[] = "blur: jkil version";
-void blur_jkil(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    int dimminus4 = dim - 4;
-
-    for (j = 0; j < dimminus4; j++)
-    {
-        for (k = 0; k < 5; k++)
-        {
-            for (i = 0; i < dimminus4; i++)
-            {
-                for (l = 0; l < 5; l++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
-            }
-        }
-    }
-}
-
-char blur_descr_jkli[] = "blur: jkli version";
-void blur_jkli(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    int dimminus4 = dim - 4;
-
-    for (j = 0; j < dimminus4; j++)
-    {
-        for (k = 0; k < 5; k++)
-        {
-            for (l = 0; l < 5; l++)
-            {
-                for (i = 0; i < dimminus4; i++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
-            }
-        }
-    }
-}
-char blur_descr_jlik[] = "blur: jlik version";
-void blur_jlik(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    int dimminus4 = dim - 4;
-
-    for (j = 0; j < dimminus4; j++)
-    {
-        for (l = 0; l < 5; l++)
-        {
-            for (i = 0; i < dimminus4; i++)
-            {
-                for (k = 0; k < 5; k++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
-            }
-        }
-    }
-}
-
-char blur_descr_jlki[] = "blur: jlki version";
-void blur_jlki(int dim, float *img, float *flt, float *dst)
-{
-
-    int i, j, k, l;
-
-    int dimminus4 = dim - 4;
-
-    for (j = 0; j < dimminus4; j++)
-    {
-        for (l = 0; l < 5; l++)
-        {
-            for (k = 0; k < 5; k++)
-            {
-                for (i = 0; i < dimminus4; i++)
-                {
-                    dst[i * dim + j] = dst[i * dim + j] + img[(i + k) * dim + j + l] * flt[k * dim + l];
-                }
-            }
-        }
-    }
-}
-
 void register_blur_functions()
 {
     add_blur_function(&naive_blur, naive_blur_descr);
     add_blur_function(&blur, blur_descr);
-    add_blur_function(&blur_ijlk, blur_descr_ijlk);
-    add_blur_function(&blur_ikjl, blur_descr_ikjl);
-    add_blur_function(&blur_iljk, blur_descr_iljk);
-    add_blur_function(&blur_ilkj, blur_descr_ilkj);
-    // add_blur_function(&blur_jikl, blur_descr_jikl);
-    // add_blur_function(&blur_jilk, blur_descr_jilk);
-    // add_blur_function(&blur_jkil, blur_descr_jkil);
-    // add_blur_function(&blur_jkli, blur_descr_jkli);
-    // add_blur_function(&blur_jlik, blur_descr_jlik);
-    // add_blur_function(&blur_jlki, blur_descr_jlki);
-    add_blur_function(&blur_iklj, blur_descr_iklj);
     /* ... Register additional test functions here */
 }
