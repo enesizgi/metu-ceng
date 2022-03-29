@@ -10,7 +10,7 @@
  * Please fill in the following team struct
  */
 team_t team = {
-    "Team", /* Team name */
+    "TeamOptimus", /* Team name */
 
     "Ahmet Buğrahan Budak", /* First member full name */
     "e2380236",             /* First member id */
@@ -467,7 +467,179 @@ void naive_blur(int dim, float *img, float *flt, float *dst)
 char blur_descr[] = "blur: Current working version";
 void blur(int dim, float *img, float *flt, float *dst)
 {
+    int i, j, idimj;
+    float flt00 = flt[0];
+    float flt10 = flt[dim];
+    float flt20 = flt[dim + dim];
+    float flt30 = flt[dim + dim + dim];
+    float flt40 = flt[dim + dim + dim + dim];
+    float ar1 = flt[1] / flt00;
+    float ar2 = flt[2] / flt00;
+    int rows = dim - 4;
 
+    int idim = 0;
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < dim; j += 8)
+        {
+            idimj = idim + j;
+            dst[idimj] += flt00 * img[idimj] + flt10 * img[idimj + dim] + flt20 * img[idimj + (dim + dim)] + flt30 * img[idimj + 3 * dim] + flt40 * img[idimj + 4 * dim];
+            dst[idimj + 1] += flt00 * img[idimj + 1] + flt10 * img[idimj + dim + 1] + flt20 * img[idimj + (dim + dim) + 1] + flt30 * img[idimj + 3 * dim + 1] + flt40 * img[idimj + 4 * dim + 1];
+            dst[idimj + 2] += flt00 * img[idimj + 2] + flt10 * img[idimj + dim + 2] + flt20 * img[idimj + (dim + dim) + 2] + flt30 * img[idimj + 3 * dim + 2] + flt40 * img[idimj + 4 * dim + 2];
+            dst[idimj + 3] += flt00 * img[idimj + 3] + flt10 * img[idimj + dim + 3] + flt20 * img[idimj + (dim + dim) + 3] + flt30 * img[idimj + 3 * dim + 3] + flt40 * img[idimj + 4 * dim + 3];
+            dst[idimj + 4] += flt00 * img[idimj + 4] + flt10 * img[idimj + dim + 4] + flt20 * img[idimj + (dim + dim) + 4] + flt30 * img[idimj + 3 * dim + 4] + flt40 * img[idimj + 4 * dim + 4];
+            dst[idimj + 5] += flt00 * img[idimj + 5] + flt10 * img[idimj + dim + 5] + flt20 * img[idimj + (dim + dim) + 5] + flt30 * img[idimj + 3 * dim + 5] + flt40 * img[idimj + 4 * dim + 5];
+            dst[idimj + 6] += flt00 * img[idimj + 6] + flt10 * img[idimj + dim + 6] + flt20 * img[idimj + (dim + dim) + 6] + flt30 * img[idimj + 3 * dim + 6] + flt40 * img[idimj + 4 * dim + 6];
+            dst[idimj + 7] += flt00 * img[idimj + 7] + flt10 * img[idimj + dim + 7] + flt20 * img[idimj + (dim + dim) + 7] + flt30 * img[idimj + 3 * dim + 7] + flt40 * img[idimj + 4 * dim + 7];
+        }
+        idim += dim;
+    }
+
+    idim = 0;
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < rows; j++)
+        {
+            int idimj = idim + j;
+            dst[idimj] = dst[idimj] + ar1 * dst[idimj + 1] + ar2 * dst[idimj + 2] + ar1 * dst[idimj + 3] + dst[idimj + 4];
+        }
+        idim += dim;
+    }
+}
+
+char blurrr_descr[] = "separate filter matrix";
+void blurrr(int dim, float *img, float *flt, float *dst)
+{
+    int i, j;
+    float flt00 = flt[0];
+    float flt10 = flt[dim];
+    float flt20 = flt[dim + dim];
+    float flt30 = flt[dim + dim + dim];
+    float flt40 = flt[dim + dim + dim + dim];
+    float ar1 = flt[1] / flt00;
+    float ar2 = flt[2] / flt00;
+    int rows = dim - 4;
+    float *temp = (float *)calloc(dim * dim, sizeof(float));
+    // float temp[dim*dim];
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < dim; j++)
+        {
+            temp[i * dim + j] += flt00 * img[i * dim + j] + flt10 * img[(i + 1) * dim + j] + flt20 * img[(i + 2) * dim + j] + flt30 * img[(i + 3) * dim + j] + flt40 * img[(i + 4) * dim + j];
+        }
+    }
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < rows; j++)
+        {
+            dst[i * dim + j] = temp[i * dim + j] + ar1 * temp[i * dim + j + 1] + ar2 * temp[i * dim + j + 2] + ar1 * temp[i * dim + j + 3] + temp[i * dim + j + 4];
+        }
+    }
+    dst[(dim - 1) * (dim - 1)] = -1;
+    free(temp);
+}
+
+char blurrr2_descr[] = "no need for temp";
+void blurrr2(int dim, float *img, float *flt, float *dst)
+{
+    int i, j;
+    float flt00 = flt[0];
+    float flt10 = flt[dim];
+    float flt20 = flt[dim + dim];
+    float flt30 = flt[dim + dim + dim];
+    float flt40 = flt[dim + dim + dim + dim];
+    float ar1 = flt[1] / flt00;
+    float ar2 = flt[2] / flt00;
+    int rows = dim - 4;
+
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < dim; j++)
+        {
+            dst[i * dim + j] += flt00 * img[i * dim + j] + flt10 * img[(i + 1) * dim + j] + flt20 * img[(i + 2) * dim + j] + flt30 * img[(i + 3) * dim + j] + flt40 * img[(i + 4) * dim + j];
+        }
+    }
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < rows; j++)
+        {
+            dst[i * dim + j] = dst[i * dim + j] + ar1 * dst[i * dim + j + 1] + ar2 * dst[i * dim + j + 2] + ar1 * dst[i * dim + j + 3] + dst[i * dim + j + 4];
+        }
+    }
+}
+
+char blurrr3_descr[] = "add idimj to second loop";
+void blurrr3(int dim, float *img, float *flt, float *dst)
+{
+    int i, j;
+    float flt00 = flt[0];
+    float flt10 = flt[dim];
+    float flt20 = flt[dim + dim];
+    float flt30 = flt[dim + dim + dim];
+    float flt40 = flt[dim + dim + dim + dim];
+    float ar1 = flt[1] / flt00;
+    float ar2 = flt[2] / flt00;
+    int rows = dim - 4;
+
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < dim; j++)
+        {
+            // int idimj = i * dim + j;
+            dst[i * dim + j] += flt00 * img[i * dim + j] + flt10 * img[(i + 1) * dim + j] + flt20 * img[(i + 2) * dim + j] + flt30 * img[(i + 3) * dim + j] + flt40 * img[(i + 4) * dim + j];
+        }
+    }
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < rows; j++)
+        {
+            int idimj = i * dim + j;
+            dst[idimj] = dst[idimj] + ar1 * dst[idimj + 1] + ar2 * dst[idimj + 2] + ar1 * dst[idimj + 3] + dst[idimj + 4];
+        }
+    }
+}
+
+char blurrr4_descr[] = "blurrr v4 - 8-unroll";
+void blurrr4(int dim, float *img, float *flt, float *dst)
+{
+    int i, j, idimj;
+    float flt00 = flt[0];
+    float flt10 = flt[dim];
+    float flt20 = flt[dim + dim];
+    float flt30 = flt[dim + dim + dim];
+    float flt40 = flt[dim + dim + dim + dim];
+    float ar1 = flt[1] / flt00;
+    float ar2 = flt[2] / flt00;
+    int rows = dim - 4;
+
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < dim; j += 8)
+        {
+            idimj = i * dim + j;
+            dst[idimj] += flt00 * img[idimj] + flt10 * img[(i + 1) * dim + j] + flt20 * img[(i + 2) * dim + j] + flt30 * img[(i + 3) * dim + j] + flt40 * img[(i + 4) * dim + j];
+            dst[idimj + 1] += flt00 * img[idimj + 1] + flt10 * img[(i + 1) * dim + j + 1] + flt20 * img[(i + 2) * dim + j + 1] + flt30 * img[(i + 3) * dim + j + 1] + flt40 * img[(i + 4) * dim + j + 1];
+            dst[idimj + 2] += flt00 * img[idimj + 2] + flt10 * img[(i + 1) * dim + j + 2] + flt20 * img[(i + 2) * dim + j + 2] + flt30 * img[(i + 3) * dim + j + 2] + flt40 * img[(i + 4) * dim + j + 2];
+            dst[idimj + 3] += flt00 * img[idimj + 3] + flt10 * img[(i + 1) * dim + j + 3] + flt20 * img[(i + 2) * dim + j + 3] + flt30 * img[(i + 3) * dim + j + 3] + flt40 * img[(i + 4) * dim + j + 3];
+            dst[idimj + 4] += flt00 * img[idimj + 4] + flt10 * img[(i + 1) * dim + j + 4] + flt20 * img[(i + 2) * dim + j + 4] + flt30 * img[(i + 3) * dim + j + 4] + flt40 * img[(i + 4) * dim + j + 4];
+            dst[idimj + 5] += flt00 * img[idimj + 5] + flt10 * img[(i + 1) * dim + j + 5] + flt20 * img[(i + 2) * dim + j + 5] + flt30 * img[(i + 3) * dim + j + 5] + flt40 * img[(i + 4) * dim + j + 5];
+            dst[idimj + 6] += flt00 * img[idimj + 6] + flt10 * img[(i + 1) * dim + j + 6] + flt20 * img[(i + 2) * dim + j + 6] + flt30 * img[(i + 3) * dim + j + 6] + flt40 * img[(i + 4) * dim + j + 6];
+            dst[idimj + 7] += flt00 * img[idimj + 7] + flt10 * img[(i + 1) * dim + j + 7] + flt20 * img[(i + 2) * dim + j + 7] + flt30 * img[(i + 3) * dim + j + 7] + flt40 * img[(i + 4) * dim + j + 7];
+        }
+    }
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < rows; j++)
+        {
+            int idimj = i * dim + j;
+            dst[idimj] = dst[idimj] + ar1 * dst[idimj + 1] + ar2 * dst[idimj + 2] + ar1 * dst[idimj + 3] + dst[idimj + 4];
+        }
+    }
+}
+
+char blur_descr_old[] = "blur: OLD version";
+void blur_old(int dim, float *img, float *flt, float *dst)
+{
     int i, j;
     int dimminus4 = dim - 4;
     float *cacheArr = (float *)malloc(sizeof(float) * 25);
@@ -574,6 +746,7 @@ void blur(int dim, float *img, float *flt, float *dst)
     }
 }
 
+
 /*********************************************************************
  * register_blur_functions - Register all of your different versions
  *     of the gaussian blur kernel with the driver by calling the
@@ -586,5 +759,10 @@ void register_blur_functions()
 {
     add_blur_function(&naive_blur, naive_blur_descr);
     add_blur_function(&blur, blur_descr);
+    add_blur_function(&blur_old, blur_descr_old);
+    // add_blur_function(&blurrr, blurrr_descr);
+    // add_blur_function(&blurrr2, blurrr2_descr);
+    // add_blur_function(&blurrr3, blurrr3_descr);
+    // add_blur_function(&blurrr4, blurrr4_descr);
     /* ... Register additional test functions here */
 }

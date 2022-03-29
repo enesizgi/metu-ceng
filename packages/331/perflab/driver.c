@@ -507,13 +507,13 @@ void test_fusion(int bench_index)
   
     printf("Your CPEs");
     for (i = 0; i < DIM_CNT; i++) {
-	printf("\t%.1f", benchmarks_fusion[bench_index].cpes[i]);
+	printf("\t%.2f", benchmarks_fusion[bench_index].cpes[i]);
     }
     printf("\n");
 
     printf("Baseline CPEs");
     for (i = 0; i < DIM_CNT; i++) {
-	printf("\t%.1f", fusion_baseline_cpes[i]);
+	printf("\t%.2f", fusion_baseline_cpes[i]);
     }
     printf("\n");
 
@@ -532,11 +532,11 @@ void test_fusion(int bench_index)
 		exit(EXIT_FAILURE);
 	    }
 	    prod *= ratio;
-	    printf("\t%.1f", ratio);
+	    printf("\t%.2f", ratio);
 	}
 	/* Geometric mean */
 	mean = pow(prod, 1.0/(double) DIM_CNT);
-	printf("\t%.1f", mean);
+	printf("\t%.2f", mean);
 	printf("\n\n");
 	if (mean > fusion_maxmean) {
 	    fusion_maxmean = mean;
@@ -620,13 +620,13 @@ void test_blur(int bench_index)
   
     printf("Your CPEs");
     for (i = 0; i < DIM_CNT; i++) {
-	printf("\t%.1f", benchmarks_blur[bench_index].cpes[i]);
+	printf("\t%.2f", benchmarks_blur[bench_index].cpes[i]);
     }
     printf("\n");
 
     printf("Baseline CPEs");
     for (i = 0; i < DIM_CNT; i++) {
-	printf("\t%.1f", blur_baseline_cpes[i]);
+	printf("\t%.2f", blur_baseline_cpes[i]);
     }
     printf("\n");
 
@@ -645,12 +645,12 @@ void test_blur(int bench_index)
 		exit(EXIT_FAILURE);
 	    }
 	    prod *= ratio;
-	    printf("\t%.1f", ratio);
+	    printf("\t%.2f", ratio);
 	}
 
 	/* Geometric mean */
 	mean = pow(prod, 1.0/(double) DIM_CNT);
-	printf("\t%.1f", mean);
+	printf("\t%.2f", mean);
 	printf("\n\n");
 	if (mean > blur_maxmean) {
 	    blur_maxmean = mean;
