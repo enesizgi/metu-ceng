@@ -15,11 +15,11 @@ const ScTable = styled.table`
             padding: 10px;
         }
 
-        .tableHeaderFirst {
+        & > th:first-child {
             border-top-left-radius: 15px;
         }
 
-        .tableHeaderLast {
+        & > th:last-child {
             border-top-right-radius: 15px;
         }
     }

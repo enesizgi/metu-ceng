@@ -38,11 +38,10 @@ function App() {
       <ScTable>
         <thead>
           <tr>
-            {tableHours[0]?.map((i, index) => (
+            {tableHours[0]?.map((i) => (
               <th
-                className={`${index === 0 ? 'tableHeaderFirst' : (index === tableHours[0].length - 1 ? 'tableHeaderLast' : '')}`}
                 key={i}>
-                {i.toLocaleDateString('en-US', { day: 'numeric', month:'numeric', weekday: 'short' })}
+                {i.toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', weekday: 'short' })}
               </th>
             ))}
           </tr>
