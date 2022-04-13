@@ -31,13 +31,14 @@ const ScTable = styled.table`
             text-align: center;
 
             td {
-                width: 60px;
+                width: 125px;
+                height: 40px;
 
                 button {
                     background-color: #36304a;
                     color : white;
                     width: 100%;
-                    height: 30px;
+                    height: 100%;
                     padding: 0;
                     box-shadow: 0px 0px 10px #36304a;
                 }
