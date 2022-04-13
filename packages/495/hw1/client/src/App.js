@@ -29,10 +29,6 @@ function App() {
     setTableHours(generateTableHoursFromCurrentDate());
   }, []);
 
-  // create a date with today at 09:00
-  const date = new Date();
-  date.setHours(9, 0, 0);
-
   return (
     <div className="App">
       <ScTable>
