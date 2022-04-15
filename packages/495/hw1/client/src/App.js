@@ -12,6 +12,9 @@ function App() {
   const [addHoursList, setAddHoursList] = useState({});
   const [selectedOption, setSelectedOption] = useState('bored');
   const [isLoading, setIsLoading] = useState(false);
+
+  const serverURL = process.env.NODE_ENV === 'production' ? 'https://enesizgi.herokuapp.com/' : 'http://localhost:4000';
+
   useEffect(() => {
     const generateTableHoursFromCurrentDate = () => {
       const currentDate = new Date();
@@ -112,7 +115,7 @@ function App() {
               return { ...newTableHour, activity: {} };
             }
             const randInt = Math.floor(Math.random() * 5) + 1;
-            const response = await fetch(`https://www.boredapi.com/api/activity/?participants=${randInt}`);
+            const response = await fetch(`${serverURL}/api/bored`);
             if (!response.ok) {
               return { ...newTableHour, activity: {} };
             };
@@ -153,7 +156,7 @@ function App() {
           return row.map(cell => {
             if (skipCounter === 1 || skipCounter === 2) {
               skipCounter++;
-              return {...cell, selected:false};
+              return { ...cell, selected: false };
             }
             if (skipCounter === 3) {
               skipCounter = 1;
