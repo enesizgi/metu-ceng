@@ -5,8 +5,8 @@ const Event = ({ date, selectedOption }) => {
         return null;
     }
     console.log(date);
-    const boredText = selectedOption === 'bored' ? date?.activity?.activity : null;
-    const moviesText = selectedOption === 'movies' ?
+    const boredText = selectedOption === 'bored' && date?.activity?.activity ? date?.activity?.activity : null;
+    const moviesText = selectedOption === 'movies' && date?.activity?.name ?
         `${date?.activity?.name} Rating:${date?.activity?.imdbRating}/10 Duration:${date?.activity?.runtime}`
         : null;
     return (

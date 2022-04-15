@@ -4,8 +4,8 @@ import ScTable from './components/ScTable';
 import Event from './components/Event';
 import AddHours from './components/AddHours';
 import moment from 'moment';
-import { mapSeries } from 'async-es';
 import axios from 'axios';
+import html2canvas from 'html2canvas';
 
 function App() {
   const [tableHours, setTableHours] = useState([]);
@@ -94,7 +94,8 @@ function App() {
 
   const scheduleButtonHandler = async (e) => {
     setIsLoading(true);
-    const newTableHours = tableHours.map(row => row.map(cell => {
+    const tableHoursCleared = tableHours.map(row => row.map(col => ({ ...col, activity: {} })));
+    const newTableHours = tableHoursCleared.map(row => row.map(cell => {
       const momentDate = moment(cell.date);
       const selected = Object.values(addHoursList).reduce((acc, curr) => {
         switch (selectedOption) {
@@ -185,6 +186,13 @@ function App() {
     setIsLoading(false);
   };
 
+  const screenshotHandler = async () => {
+    html2canvas(document.querySelector('#root > div > table')).then(canvas => {
+      document.body.appendChild(canvas);
+      console.log(canvas);
+    });
+  };
+
   return (
     <div className="App">
       {isLoading ? <div>Please wait, we are fetching data!</div> : null}
@@ -243,6 +251,7 @@ function App() {
           />
         ))}
         <button onClick={scheduleButtonHandler}>Schedule</button>
+        <button onClick={screenshotHandler}>Screenshot</button>
       </>
     </div>
   );
