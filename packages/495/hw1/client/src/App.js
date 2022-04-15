@@ -13,7 +13,11 @@ function App() {
   const [selectedOption, setSelectedOption] = useState('bored');
   const [isLoading, setIsLoading] = useState(false);
 
-  const serverURL = process.env.NODE_ENV === 'production' ? 'https://enesizgi.herokuapp.com' : 'http://localhost:4000';
+  const serverURL = window.location.href.includes('enesizgi.herokuapp.com')
+    ? 'https://enesizgi.herokuapp.com'
+    : 'http://localhost:4000';
+
+  console.log('serverURL', serverURL);
 
   useEffect(() => {
     const generateTableHoursFromCurrentDate = () => {
@@ -91,7 +95,6 @@ function App() {
     setIsLoading(true);
     const newTableHours = tableHours.map(row => row.map(cell => {
       const momentDate = moment(cell.date);
-      const skipCounter = 0;
       const selected = Object.values(addHoursList).reduce((acc, curr) => {
         switch (selectedOption) {
           case 'bored':
@@ -114,7 +117,6 @@ function App() {
             if (!newTableHour.selected) {
               return { ...newTableHour, activity: {} };
             }
-            const randInt = Math.floor(Math.random() * 5) + 1;
             const response = await fetch(`${serverURL}/api/bored`);
             if (!response.ok) {
               return { ...newTableHour, activity: {} };
