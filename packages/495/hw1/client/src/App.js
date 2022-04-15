@@ -4,7 +4,7 @@ import ScTable from './components/ScTable';
 import Event from './components/Event';
 import AddHours from './components/AddHours';
 import moment from 'moment';
-import mapLimit from 'async/mapLimit';
+import mapSeries from 'async/mapSeries';
 
 function App() {
   const [tableHours, setTableHours] = useState([]);
@@ -108,8 +108,8 @@ function App() {
     switch (selectedOption) {
       case 'bored':
         // console.log(newTableHours);
-        const tableHoursWithEvents = await mapLimit(newTableHours, 10, async (row) => {
-          const rowWithActivity = await mapLimit(row, 5, async (newTableHour) => {
+        const tableHoursWithEvents = await mapSeries(newTableHours, async (row) => {
+          const rowWithActivity = await mapSeries(row, async (newTableHour) => {
             // console.log(newTableHour);
             if (!newTableHour.selected) {
               return { ...newTableHour, activity: {} };
@@ -131,8 +131,8 @@ function App() {
         setTableHours(tableHoursWithEvents);
         break;
       case 'movies':
-        const tableHoursWithMovies = await mapLimit(newTableHours, 10, async (row) => {
-          const rowWithActivity = await mapLimit(row, 5, async (newTableHour) => {
+        const tableHoursWithMovies = await mapSeries(newTableHours, async (row) => {
+          const rowWithActivity = await mapSeries(row, async (newTableHour) => {
             // console.log(newTableHour);
             if (!newTableHour.selected) {
               return { ...newTableHour, activity: {} };
