@@ -129,7 +129,7 @@ function App() {
 
           return rowWithActivity;
         });
-
+        console.log(tableHoursWithEvents);
         setTableHours(tableHoursWithEvents);
         break;
       case 'movies':
