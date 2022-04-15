@@ -112,28 +112,22 @@ function App() {
     switch (selectedOption) {
       case 'bored':
         // console.log(newTableHours);
-        const tableHoursWithEvents = await mapSeries(newTableHours, async (row) => {
-          const rowWithActivity = await mapSeries(row, async (newTableHour) => {
-            // console.log(newTableHour);
-            if (!newTableHour.selected) {
-              return { ...newTableHour, activity: {} };
-            }
-            const response = await axios(`${serverURL}/api/bored`);
-            // console.log(response);
-            // console.log(response.data);
-            if (response.status !== 200) {
-              return { ...newTableHour, activity: {} };
-            };
-            const data = response.data;
-            console.log(data);
-            return { ...newTableHour, activity: data };
-          });
-          // console.log(row);
-
-          return rowWithActivity;
+        const response = await axios(`${serverURL}/api/bored`, {
+          method: 'POST',
+          data: {
+            tableHours: newTableHours,
+          },
         });
-        console.log(tableHoursWithEvents);
-        setTableHours(tableHoursWithEvents);
+
+        const lastTableHours = newTableHours.map((row, i) => row.map((cell, j) => {
+          const newCell = { ...cell };
+          newCell.selected = response.data.at(i).at(j).selected;
+          newCell.activity = response.data.at(i).at(j).activity;
+          return newCell;
+        }));
+
+        console.log(lastTableHours);
+        setTableHours(lastTableHours);
         break;
       case 'movies':
         const tableHoursWithMovies = await mapSeries(newTableHours, async (row) => {
