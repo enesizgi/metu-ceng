@@ -49,17 +49,32 @@ app.post('/api/bored', async (req, res) => {
         return rowWithActivity;
     });
 
-    // send a successfull response with tablehourswithevents object
     res.send(tableHoursWithEvents);
-
-    // const randInt = Math.floor(Math.random() * 5) + 1;
-    // const response = await fetch(`https://www.boredapi.com/api/activity/?participants=${randInt}`);
-    // res.send(await response.json());
 });
 
-app.get('/api/movies', async (req, res) => {
-    const response = await fetch(`https://k2maan-moviehut.herokuapp.com/api/random`);
-    res.send(await response.json());
+app.post('/api/movies', async (req, res) => {
+    const tableHours = req.body.tableHours;
+    console.log(JSON.stringify(tableHours));
+    const tableHoursWithMovies = await mapSeries(tableHours, async (row) => {
+        const rowWithActivity = await mapSeries(row, async (newTableHour) => {
+            // console.log(newTableHour);
+            if (!newTableHour.selected) {
+                return { ...newTableHour, activity: {} };
+            }
+            const response = await axios(`https://k2maan-moviehut.herokuapp.com/api/random`);
+            if (response.status !== 200) {
+                return { ...newTableHour, activity: {} };
+            };
+            const data = response.data;
+            console.log(data);
+            return { ...newTableHour, activity: data };
+        });
+        // console.log(row);
+
+        return rowWithActivity;
+    });
+
+    res.send(tableHoursWithMovies);
 });
 
 app.listen(port, () => console.log(`Listening on port ${port}`));

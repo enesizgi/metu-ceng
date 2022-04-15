@@ -119,6 +119,10 @@ function App() {
           },
         });
 
+        if (response.status !== 200) {
+          return;
+        }
+
         const lastTableHours = newTableHours.map((row, i) => row.map((cell, j) => {
           const newCell = { ...cell };
           newCell.selected = response.data.at(i).at(j).selected;
@@ -130,24 +134,24 @@ function App() {
         setTableHours(lastTableHours);
         break;
       case 'movies':
-        const tableHoursWithMovies = await mapSeries(newTableHours, async (row) => {
-          const rowWithActivity = await mapSeries(row, async (newTableHour) => {
-            // console.log(newTableHour);
-            if (!newTableHour.selected) {
-              return { ...newTableHour, activity: {} };
-            }
-            const response = await axios(`${serverURL}/api/movies`);
-            if (response.status !== 200) {
-              return { ...newTableHour, activity: {} };
-            };
-            const data = response.data;
-            console.log(data);
-            return { ...newTableHour, activity: data };
-          });
-          // console.log(row);
 
-          return rowWithActivity;
+        const responseMovies = await axios(`${serverURL}/api/movies`, {
+          method: 'POST',
+          data: {
+            tableHours: newTableHours,
+          },
         });
+
+        if (responseMovies.status !== 200) {
+          return;
+        }
+
+        const tableHoursWithMovies = newTableHours.map((row, i) => row.map((cell, j) => {
+          const newCell = { ...cell };
+          newCell.selected = responseMovies.data.at(i).at(j).selected;
+          newCell.activity = responseMovies.data.at(i).at(j).activity;
+          return newCell;
+        }));
 
         const transposedTableHoursWithMovies = tableHoursWithMovies[0].map((col, i) => tableHoursWithMovies.map(row => row[i]));
         const updatedTableHoursWithMovies = transposedTableHoursWithMovies.map(row => {
