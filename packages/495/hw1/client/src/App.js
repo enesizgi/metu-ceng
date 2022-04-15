@@ -4,7 +4,7 @@ import ScTable from './components/ScTable';
 import Event from './components/Event';
 import AddHours from './components/AddHours';
 import moment from 'moment';
-import mapSeries from 'async/mapSeries';
+import { mapSeries } from 'async-es';
 
 function App() {
   const [tableHours, setTableHours] = useState([]);
