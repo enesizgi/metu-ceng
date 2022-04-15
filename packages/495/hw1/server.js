@@ -17,4 +17,8 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
+app.get('/api/date', (req, res) => {
+    res.send(new Date());
+});
+
 app.listen(port, () => console.log(`Listening on port ${port}`));

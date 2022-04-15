@@ -7,15 +7,17 @@ const ScTable = styled.table`
     & > thead > tr {
         background-color: #36304a;
         text-align: center;
-
+        
         th {
             background-color: #36304a;
             color: white;
             font-size: 18px;
             padding: 10px;
+            border : 1px solid #827b9a;
+            box-shadow : 0px 0px 10px #36304a;
         }
 
-        & > th:first-child {
+        & > td:first-child {
             border-top-left-radius: 15px;
         }
 
@@ -29,6 +31,14 @@ const ScTable = styled.table`
             background-color: #a69fbe;
             padding: 10px;
             text-align: center;
+
+            th {
+                background-color: #36304a;
+                color: white;
+                padding: 10px;
+                border: 1px solid #827b9a;
+                box-shadow: 0px 0px 10px #36304a;
+            }
 
             td {
                 width: 125px;
