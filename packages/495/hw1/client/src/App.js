@@ -13,7 +13,7 @@ function App() {
   const [selectedOption, setSelectedOption] = useState('bored');
   const [isLoading, setIsLoading] = useState(false);
 
-  const serverURL = process.env.NODE_ENV === 'production' ? 'https://enesizgi.herokuapp.com/' : 'http://localhost:4000';
+  const serverURL = process.env.NODE_ENV === 'production' ? 'https://enesizgi.herokuapp.com' : 'http://localhost:4000';
 
   useEffect(() => {
     const generateTableHoursFromCurrentDate = () => {
