@@ -137,7 +137,7 @@ function App() {
             if (!newTableHour.selected) {
               return { ...newTableHour, activity: {} };
             }
-            const response = await fetch(`https://k2maan-moviehut.herokuapp.com/api/random`);
+            const response = await fetch(`${serverURL}/api/movies`);
             if (!response.ok) {
               return { ...newTableHour, activity: {} };
             };
