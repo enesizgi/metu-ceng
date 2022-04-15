@@ -12,5 +12,9 @@ express: Node js server library
 moment: Date library
 styled-components: CSS library for React
 
+I couldn't complete these parts: 
+Uploading to imgur (but it prints on the page)
+Adding a third wildcard (3rd option)
+
 Muhammed Enes Izgi
 2310142
