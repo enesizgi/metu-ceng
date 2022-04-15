@@ -5,6 +5,7 @@ import Event from './components/Event';
 import AddHours from './components/AddHours';
 import moment from 'moment';
 import { mapSeries } from 'async-es';
+import axios from 'axios';
 
 function App() {
   const [tableHours, setTableHours] = useState([]);
@@ -117,12 +118,14 @@ function App() {
             if (!newTableHour.selected) {
               return { ...newTableHour, activity: {} };
             }
-            const response = await fetch(`${serverURL}/api/bored`);
-            if (!response.ok) {
+            const response = await axios(`${serverURL}/api/bored`);
+            // console.log(response);
+            console.log(response.data);
+            if (response.status !== 200) {
               return { ...newTableHour, activity: {} };
             };
-            const data = await response.json();
-            // console.log(data);
+            const data = response.data;
+            console.log(data);
             return { ...newTableHour, activity: data };
           });
           // console.log(row);
@@ -139,12 +142,12 @@ function App() {
             if (!newTableHour.selected) {
               return { ...newTableHour, activity: {} };
             }
-            const response = await fetch(`${serverURL}/api/movies`);
+            const response = await axios(`${serverURL}/api/movies`);
             if (!response.ok) {
               return { ...newTableHour, activity: {} };
             };
             const data = await response.json();
-            // console.log(data);
+            console.log(data);
             return { ...newTableHour, activity: data };
           });
           // console.log(row);
