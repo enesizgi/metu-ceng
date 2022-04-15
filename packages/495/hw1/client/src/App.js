@@ -112,7 +112,7 @@ function App() {
               return { ...newTableHour, activity: {} };
             }
             const randInt = Math.floor(Math.random() * 5) + 1;
-            const response = await fetch(`http://www.boredapi.com/api/activity/?participants=${randInt}`);
+            const response = await fetch(`https://www.boredapi.com/api/activity/?participants=${randInt}`);
             if (!response.ok) {
               return { ...newTableHour, activity: {} };
             };
