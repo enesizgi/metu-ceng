@@ -120,7 +120,7 @@ function App() {
             }
             const response = await axios(`${serverURL}/api/bored`);
             // console.log(response);
-            console.log(response.data);
+            // console.log(response.data);
             if (response.status !== 200) {
               return { ...newTableHour, activity: {} };
             };
@@ -143,10 +143,10 @@ function App() {
               return { ...newTableHour, activity: {} };
             }
             const response = await axios(`${serverURL}/api/movies`);
-            if (!response.ok) {
+            if (response.status !== 200) {
               return { ...newTableHour, activity: {} };
             };
-            const data = await response.json();
+            const data = response.data;
             console.log(data);
             return { ...newTableHour, activity: data };
           });
