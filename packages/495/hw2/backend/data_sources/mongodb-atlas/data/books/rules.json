@@ -6,6 +6,7 @@
             "name": "default",
             "apply_when": {},
             "fields": {
+                "_id": {},
                 "isComplete": {},
                 "title": {}
             },
