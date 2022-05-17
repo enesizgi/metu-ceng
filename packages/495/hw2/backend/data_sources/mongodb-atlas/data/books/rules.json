@@ -5,6 +5,9 @@
         {
             "name": "default",
             "apply_when": {},
+            "fields": {
+                "title": {}
+            },
             "write": true,
             "insert": true,
             "delete": true,
