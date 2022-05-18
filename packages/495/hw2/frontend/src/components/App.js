@@ -1,6 +1,8 @@
+import React, { useState } from "react";
 import { AppBar, Toolbar, Button, Typography } from "@material-ui/core";
 import { WelcomePage } from "./WelcomePage";
 import { TodoItemsPage } from "./TodoItemsPage";
+import { AdminPage } from "./AdminPage";
 import { RealmAppProvider, useRealmApp } from "./RealmApp";
 import { ThemeProvider } from "./Theme";
 import { AppName } from "./AppName";
@@ -19,12 +21,14 @@ export default function AppWithRealm() {
 
 function App() {
   const { currentUser, logOut } = useRealmApp();
+  const isAdmin = currentUser?.id === "6283fd2ac3ac799e65415025";
+
   return (
     <div className="App">
       <AppBar position="sticky">
         <Toolbar>
           <AppName />
-          {currentUser ? (
+          {currentUser && (
             <Button
               variant="contained"
               color="secondary"
@@ -34,10 +38,11 @@ function App() {
             >
               <Typography variant="button">Log Out</Typography>
             </Button>
-          ) : null}
+          )}
         </Toolbar>
       </AppBar>
-      {currentUser ? <TodoItemsPage /> : <WelcomePage />}
+      {currentUser && isAdmin && <AdminPage />}
+      {!currentUser && <WelcomePage />}
     </div>
   );
 }
