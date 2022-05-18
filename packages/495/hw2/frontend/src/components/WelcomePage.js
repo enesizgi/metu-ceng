@@ -12,14 +12,16 @@ import {
 import Visibility from "@material-ui/icons/Visibility";
 import VisibilityOff from "@material-ui/icons/VisibilityOff";
 import { useRealmApp } from "./RealmApp";
-import { MoreInfoTemplateAndDocs } from "./MoreInfo";
 import { toggleBoolean } from "../utils";
 import { useErrorAlert } from "../hooks/useErrorAlert";
+import { dataSourceName } from "../realm.json";
 
-export function WelcomePage() {
+export function WelcomePage({ isAdminLogin, onRegisterHandler }) {
   const realmApp = useRealmApp();
+  // const { users } = useUsers();
+  // console.log(isAdminLogin);
   // Track whether the user is logging in or signing up for a new account
-  const [isSignup, setIsSignup] = React.useState(false);
+  const [isSignup, setIsSignup] = React.useState(isAdminLogin ? true : false);
   const toggleIsSignup = () => {
     clearErrors();
     setIsSignup(toggleBoolean);
@@ -48,8 +50,22 @@ export function WelcomePage() {
       if (isSignup) {
         await realmApp.emailPasswordAuth.registerUser(email, password);
       }
-      await realmApp.logIn(Realm.Credentials.emailPassword(email, password));
+      if (!isAdminLogin) {
+        await realmApp.logIn(Realm.Credentials.emailPassword(email, password));
+      }
+      else {
+        const draftUser = {
+          _id: new Realm.BSON.ObjectID(),
+          userID: realmApp.currentUser.id,
+        };
+        const mdb = realmApp.currentUser.mongoClient(dataSourceName);
+        await mdb.db("data").collection("users").insertOne(draftUser);
+  
+        realmApp.switchToAdmin();
+        onRegisterHandler();
+      }
     } catch (err) {
+      console.log('error');
       handleAuthenticationError(err, setError);
     }
   };
@@ -110,13 +126,11 @@ export function WelcomePage() {
             className="link-button"
             onClick={() => toggleIsSignup()}
           >
-            {isSignup
-              ? "Already have an account? Log In"
-              : "Sign up for an account"}
+            {isSignup && !isAdminLogin && "Already have an account? Log In"}
+            {!isSignup && !isAdminLogin && "Sign up for an account"}
           </button>
         </form>
       </Card>
-      <MoreInfoTemplateAndDocs />
     </Container>
   );
 }

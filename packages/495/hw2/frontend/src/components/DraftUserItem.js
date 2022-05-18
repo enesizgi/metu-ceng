@@ -24,9 +24,9 @@ export const DraftUserItem = ({ user, userActions, draftUserActions }) => {
           style={{ width: "100%" }}
           placeholder="What needs doing?"
           size="small"
-          value={user.summary}
+          value={user.username}
           onChange={(e) => {
-            draftUserActions.setDraftTodoSummary(user, e.target.value);
+            // draftUserActions.setDraftTodoSummary(user, e.target.value);
           }}
         />
       </ListItemText>
@@ -35,8 +35,8 @@ export const DraftUserItem = ({ user, userActions, draftUserActions }) => {
           variant="outlined"
           size="small"
           onClick={async () => {
-            await userActions.saveTodo(user);
-            draftUserActions.deleteDraftTodo(user);
+            await userActions.saveUser(user);
+            draftUserActions.deleteDraftUser(user);
           }}
         >
           Save
@@ -45,7 +45,7 @@ export const DraftUserItem = ({ user, userActions, draftUserActions }) => {
           edge="end"
           size="small"
           onClick={() => {
-            draftUserActions.deleteDraftTodo(user);
+            draftUserActions.deleteDraftUser(user);
           }}
         >
           <ClearIcon />

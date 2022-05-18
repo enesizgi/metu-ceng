@@ -19,6 +19,7 @@ export function RealmAppProvider({ appId, children }) {
   // Wrap the base logIn function to save the logged in user in state
   const logIn = React.useCallback(
     async (credentials) => {
+      console.log('credentials', credentials);
       await realmApp.logIn(credentials);
       setCurrentUser(realmApp.currentUser);
     },
@@ -31,10 +32,33 @@ export function RealmAppProvider({ appId, children }) {
     setCurrentUser(realmApp.currentUser);
   }, [realmApp, currentUser]);
 
+  const switchToAdmin = React.useCallback(() => {
+    const authenticatedUsers = Object.values(realmApp.allUsers).filter(
+      (user) => user.isLoggedIn
+    );
+    realmApp.switchUser(authenticatedUsers.find((user) => user.id === "6283fd2ac3ac799e65415025"));
+    setCurrentUser(realmApp.currentUser);
+  }, [realmApp]);
+
+  const allUsers = React.useMemo(() => Object.values(realmApp.allUsers).filter(user => user.isLoggedIn), [
+    realmApp
+  ]);
+
+  const switchUser = React.useCallback(
+    (userId) => {
+      const user = allUsers.find((user) => user.id === userId);
+      if (user) {
+        realmApp.switchUser(user);
+        setCurrentUser(realmApp.currentUser);
+      }
+    },
+    [realmApp, allUsers]
+  );
+
   // Override the App's currentUser & logIn properties + include the app-level logout function
   const realmAppContext = React.useMemo(() => {
-    return { ...realmApp, currentUser, logIn, logOut };
-  }, [realmApp, currentUser, logIn, logOut]);
+    return { ...realmApp, allUsers, switchUser, currentUser, logIn, logOut, switchToAdmin };
+  }, [realmApp, allUsers, switchUser, currentUser, logIn, logOut, switchToAdmin]);
 
   return (
     <RealmAppContext.Provider value={realmAppContext}>

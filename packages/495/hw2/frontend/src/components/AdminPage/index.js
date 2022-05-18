@@ -13,8 +13,6 @@ export const AdminPage = () => {
     ...userActions
   } = useUsers();
 
-  console.log(users);
-
   const handleBooksButtonClick = () => {
     setCurrentPage("books");
   };

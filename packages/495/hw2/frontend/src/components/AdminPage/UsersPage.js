@@ -13,6 +13,7 @@ import { DraftUserItem } from "../DraftUserItem";
 import { useUsers } from "../../hooks/useUsers";
 import { useDraftUsers } from "../../hooks/useDraftUsers";
 import { useShowLoader } from "../../hooks/util-hooks";
+import { WelcomePage } from "../WelcomePage";
 
 export const UsersPage = ({
   handleBackButtonClick
@@ -20,8 +21,14 @@ export const UsersPage = ({
   const { loading, users, ...userActions } = useUsers();
   const { draftUsers, ...draftUserActions } = useDraftUsers();
   const showLoader = useShowLoader(loading, 200);
-  console.log(users);
-  console.log(draftUsers);
+  const [isAddUserClicked, setIsAddUserClicked] = React.useState(false);
+
+  // console.log(users);
+  // console.log(draftUsers);
+
+  const onRegisterHandler = () => {
+    setIsAddUserClicked(false);
+  };
 
   return (
     <>
@@ -32,47 +39,51 @@ export const UsersPage = ({
       >
         Go Back
       </Button>
-      <Container className="main-container" maxWidth="sm">
-        {loading ? (
-          showLoader ? (
-            <LinearProgress />
-          ) : null
+      {!isAddUserClicked && <Container className="main-container" maxWidth="sm">
+        {(loading && showLoader) ? (
+          <LinearProgress />
         ) : (
           <div className="todo-items-container">
             <Typography component="p" variant="h5">
-              {`You have ${users.length} To-Do Item${users.length === 1 ? "" : "s"
+              {`You have ${users.length} user${users.length === 1 ? "" : "s"
                 }`}
             </Typography>
             <Button
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              onClick={() => draftUserActions.createDraftUser()}
+              onClick={() => {
+                setIsAddUserClicked(true);
+              }}
             >
               Add User
             </Button>
-            
-              {users.map((user) => (
-                <Card style={{width: "600px", height: "300px"}}>
-                  <UserItem
-                    key={String(user._id)}
-                    user={user}
-                    userActions={userActions}
-                  />
-                </Card>
-              ))}
-              {draftUsers.map((draft) => (
-                <DraftUserItem
-                  key={String(draft._id)}
-                  user={draft}
+
+            {users.map((user) => (
+              <Card style={{ width: "600px", height: "300px" }}>
+                <UserItem
+                  key={String(user._id)}
+                  user={user}
                   userActions={userActions}
-                  draftUserActions={draftUserActions}
                 />
-              ))}
-            
+              </Card>
+            ))}
+            {draftUsers.map((draft) => (
+              <DraftUserItem
+                key={String(draft._id)}
+                user={draft}
+                userActions={userActions}
+                draftUserActions={draftUserActions}
+              />
+            ))}
+
           </div>
         )}
-      </Container>
+      </Container>}
+      {isAddUserClicked && <WelcomePage
+        isAdminLogin={true}
+        onRegisterHandler={onRegisterHandler}
+      />}
     </>
   );
 };
