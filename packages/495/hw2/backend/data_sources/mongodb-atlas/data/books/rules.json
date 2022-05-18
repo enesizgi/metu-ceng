@@ -31,6 +31,22 @@
             "delete": false,
             "search": true,
             "additional_fields": {}
+        },
+        {
+            "name": "adminID",
+            "apply_when": {
+                "%%user.id": "%%values.adminID"
+            },
+            "fields": {
+                "_id": {},
+                "isComplete": {},
+                "title": {}
+            },
+            "write": true,
+            "insert": true,
+            "delete": true,
+            "search": true,
+            "additional_fields": {}
         }
     ]
 }
