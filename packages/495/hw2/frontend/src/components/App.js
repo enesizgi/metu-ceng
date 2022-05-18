@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { AppBar, Toolbar, Button, Typography } from "@material-ui/core";
 import { WelcomePage } from "./WelcomePage";
-import { TodoItemsPage } from "./TodoItemsPage";
-import { AdminPage } from "./AdminPage";
+import { AdminPage } from "./AdminPage/";
 import { RealmAppProvider, useRealmApp } from "./RealmApp";
 import { ThemeProvider } from "./Theme";
 import { AppName } from "./AppName";
