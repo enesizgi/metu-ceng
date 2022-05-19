@@ -3,7 +3,6 @@ import { useBooks } from "../../hooks/useBooks";
 import {
   Container,
   Button,
-  Typography,
   LinearProgress,
   Card,
   TextField,
@@ -18,10 +17,11 @@ import { useShowLoader } from "../../hooks/util-hooks";
 export const BooksPage = ({
   handleBackButtonClick,
   isAddBookButtonClicked,
-  setIsAddBookButtonClicked
+  setIsAddBookButtonClicked,
+  isAdmin
 }) => {
   const [pageNumber, setPageNumber] = React.useState(1);
-  const { loading, books, totalBooks, ...bookActions } = useBooks(pageNumber);
+  const { loading, books, totalBooks, ...bookActions } = useBooks(0, pageNumber);
   const showLoader = useShowLoader(loading, 200);
   const [tempBook, setTempBook] = React.useState({
     isFiction: true
@@ -101,6 +101,7 @@ export const BooksPage = ({
                     key={Math.random()}
                     book={book}
                     bookActions={bookActions}
+                    isAdmin={isAdmin}
                   />
                 </Card>
               ))}

@@ -47,6 +47,7 @@ export const AdminPage = ({adminCurrentPage, setAdminCurrentPage}) => {
             handleBackButtonClick={handleBackButtonClick}
             isAddBookButtonClicked={isAddBookButtonClicked}
             setIsAddBookButtonClicked={setIsAddBookButtonClicked}
+            isAdmin={true}
           />
         );
       case "users":
