@@ -24,13 +24,13 @@ export const useBooks = (queryLimit, pageNumber) => {
   });
 
   useEffect(() => {
+    bookCollection.count().then(i => setTotalBooks(i));
     realmApp.currentUser.callFunction("getDocumentsWithLimit", {
       limit: queryLimit || 3,
       skip: (pageNumber - 1) * (queryLimit || 3),
       collection: "books"
     }).then(books => {
       setBooks(books);
-      setTotalBooks(books.length);
       setLoading(false);
     });
   }, [bookCollection, queryLimit, pageNumber, realmApp.currentUser]);
