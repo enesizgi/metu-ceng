@@ -3,6 +3,22 @@
     "database": "data",
     "roles": [
         {
+            "name": "adminID",
+            "apply_when": {
+                "%%user.id": "%%values.adminID"
+            },
+            "fields": {
+                "_id": {},
+                "isComplete": {},
+                "title": {}
+            },
+            "write": true,
+            "insert": true,
+            "delete": true,
+            "search": true,
+            "additional_fields": {}
+        },
+        {
             "name": "owner",
             "apply_when": {
                 "%%root._partition": "%%user.id"
@@ -29,22 +45,6 @@
             "read": true,
             "insert": false,
             "delete": false,
-            "search": true,
-            "additional_fields": {}
-        },
-        {
-            "name": "adminID",
-            "apply_when": {
-                "%%user.id": "%%values.adminID"
-            },
-            "fields": {
-                "_id": {},
-                "isComplete": {},
-                "title": {}
-            },
-            "write": true,
-            "insert": true,
-            "delete": true,
             "search": true,
             "additional_fields": {}
         }
