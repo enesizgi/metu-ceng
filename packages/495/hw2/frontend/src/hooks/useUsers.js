@@ -30,7 +30,6 @@ export const useUsers = (pageNumber) => {
       skip: (pageNumber - 1) * 3,
       collection: "users"
     }).then(users => {
-      console.log(users);
       setUsers(users);
       setLoading(false);
     });
@@ -87,18 +86,27 @@ export const useUsers = (pageNumber) => {
   });
 
   const saveUser = async (draftUser) => {
-    if (draftUser.username) {
-      draftUser._partition = realmApp.currentUser.id;
-      try {
-        await userCollection.insertOne(draftUser);
-      } catch (err) {
-        if (err.error.match(/^Duplicate key error/)) {
-          console.warn(
-            `The following error means that we tried to insert a todo multiple times (i.e. an existing todo has the same _id). In this app we just catch the error and move on. In your app, you might want to debounce the save input or implement an additional loading state to avoid sending the request in the first place.`
-          );
-        }
-        console.error(err);
+    draftUser._partition = realmApp.currentUser.id;
+    try {
+      await userCollection.insertOne(draftUser);
+    } catch (err) {
+      if (err.error.match(/^Duplicate key error/)) {
+        console.warn(
+          `The following error means that we tried to insert a todo multiple times (i.e. an existing todo has the same _id). In this app we just catch the error and move on. In your app, you might want to debounce the save input or implement an additional loading state to avoid sending the request in the first place.`
+        );
       }
+      console.error(err);
+    }
+  };
+
+  const updateUser = async (userID, updatedFields) => {
+    try {
+      await userCollection.updateOne(
+        { userID: userID },
+        { $set: updatedFields }
+      );
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -122,6 +130,7 @@ export const useUsers = (pageNumber) => {
     saveUser,
     toggleUser,
     deleteUser,
+    updateUser
   };
 
 };

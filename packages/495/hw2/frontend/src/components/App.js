@@ -100,7 +100,10 @@ function App() {
         />
       }
       {!currentUser && !isAdmin && currentPage === pages.home && <WelcomePage />}
-      {!isAdmin && currentUser && currentPage === pages.profile && <ProfilePage />}
+      {!isAdmin && currentUser && currentPage === pages.profile &&
+      <ProfilePage
+        currentUser={currentUser}
+      />}
     </div>
   );
 }
