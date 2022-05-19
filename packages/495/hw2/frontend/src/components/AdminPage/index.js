@@ -15,7 +15,6 @@ export const AdminPage = ({adminCurrentPage, setAdminCurrentPage}) => {
   };
 
   const handleBackButtonClick = () => {
-    console.log(isAddBookButtonClicked);
     setAdminCurrentPage(isAddBookButtonClicked ? "books" : "panel");
   };
 
