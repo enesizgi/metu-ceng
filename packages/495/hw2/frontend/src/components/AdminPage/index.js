@@ -24,7 +24,7 @@ export const AdminPage = () => {
     switch (currentPage) {
       case "panel":
         return (
-          <div style={{display:'flex', justifyContent: 'center', padding: '24px'}}>
+          <div style={{display:'flex', justifyContent: 'center', padding: '16px'}}>
             <Button
               variant="contained"
               color="secondary"

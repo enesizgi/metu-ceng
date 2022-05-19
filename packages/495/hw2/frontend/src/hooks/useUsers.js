@@ -11,10 +11,11 @@ import {
   removeValueAtIndex
 } from "../utils";
 
-export const useUsers = () => {
+export const useUsers = (pageNumber) => {
   const realmApp = useRealmApp();
   const [users, setUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [totalUsers, setTotalUsers] = React.useState(0);
 
   const userCollection = useCollection({
     cluster: dataSourceName,
@@ -23,11 +24,17 @@ export const useUsers = () => {
   });
 
   useEffect(() => {
-    userCollection.find({}).then((fetchedUsers) => {
-      setUsers(fetchedUsers);
+    userCollection.count().then(i => setTotalUsers(i));
+    realmApp.currentUser.callFunction("getDocumentsWithLimit", {
+      limit: 3,
+      skip: (pageNumber - 1) * 3,
+      collection: "users"
+    }).then(users => {
+      console.log(users);
+      setUsers(users);
       setLoading(false);
     });
-  }, [userCollection]);
+  }, [userCollection, pageNumber, realmApp.currentUser]);
 
   useWatch(userCollection, {
     onInsert: (change) => {
@@ -111,6 +118,7 @@ export const useUsers = () => {
   return {
     loading,
     users,
+    totalUsers,
     saveUser,
     toggleUser,
     deleteUser,

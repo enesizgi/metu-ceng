@@ -11,10 +11,11 @@ import {
   removeValueAtIndex
 } from "../utils";
 
-export const useBooks = () => {
+export const useBooks = (pageNumber) => {
   const realmApp = useRealmApp();
   const [books, setBooks] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [totalBooks, setTotalBooks] = React.useState(0);
 
   const bookCollection = useCollection({
     cluster: dataSourceName,
@@ -23,11 +24,17 @@ export const useBooks = () => {
   });
 
   useEffect(() => {
-    bookCollection.find({}).then((fetchedBooks) => {
-      setBooks(fetchedBooks);
+    bookCollection.count().then(i => setTotalBooks(i));
+    realmApp.currentUser.callFunction("getDocumentsWithLimit", {
+      limit: 3,
+      skip: (pageNumber - 1) * 3,
+      collection: "books"
+    }).then(books => {
+      console.log(books);
+      setBooks(books);
       setLoading(false);
     });
-  }, [bookCollection]);
+  }, [bookCollection, pageNumber, realmApp.currentUser]);
 
   useWatch(bookCollection, {
     onInsert: (change) => {
@@ -101,6 +108,7 @@ export const useBooks = () => {
   return {
     loading,
     books,
+    totalBooks,
     saveBook,
     deleteBook
   };

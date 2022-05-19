@@ -20,12 +20,12 @@ export const BooksPage = ({
   isAddBookButtonClicked,
   setIsAddBookButtonClicked
 }) => {
-  const { loading, books, ...bookActions } = useBooks();
+  const [pageNumber, setPageNumber] = React.useState(1);
+  const { loading, books, totalBooks, ...bookActions } = useBooks(pageNumber);
   const showLoader = useShowLoader(loading, 200);
   const [tempBook, setTempBook] = React.useState({
-    isFiction: true,
+    isFiction: true
   });
-  console.log(tempBook);
 
   const textFieldStyle = {
     margin: "10px"
@@ -58,13 +58,13 @@ export const BooksPage = ({
       >
         Go Back
       </Button>
-      <Container>
+      <Container maxWidth={false}>
         {loading && showLoader && <LinearProgress />}
         {!loading && !showLoader && !isAddBookButtonClicked && (
           <>
             <div className="title-container">
               <h2 className="title-container">
-                {`You have ${books.length} book${books.length === 1 ? "" : "s"
+                {`You have ${totalBooks} book${totalBooks === 1 ? "" : "s"
                   }`}
               </h2>
               <Button
@@ -75,12 +75,30 @@ export const BooksPage = ({
               >
                 Add Book
               </Button>
+              <div style={textFieldStyle}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setPageNumber(prev => Math.max(prev - 1, 0))}
+                  style={textFieldStyle}
+                >
+                  Previous Page
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setPageNumber(prev => Math.min(prev + 1, Math.ceil(totalBooks / 3)))}
+                  style={textFieldStyle}
+                >
+                  Next Page
+                </Button>
+              </div>
             </div>
             <div className="main-container">
               {books.map((book) => (
-                <Card style={{  margin: "16px", padding: '16px' }}>
+                <Card style={{ margin: "16px", padding: '16px' }}>
                   <BookItem
-                    key={String(book._id)}
+                    key={Math.random()}
                     book={book}
                     bookActions={bookActions}
                   />
@@ -131,7 +149,9 @@ export const BooksPage = ({
                   console.log(tempBook);
                   bookActions.saveBook(tempBook);
                   setIsAddBookButtonClicked(false);
-                  setTempBook({});
+                  setTempBook({
+                    isFiction: true
+                  });
                 }}
                 style={textFieldStyle}
               >
