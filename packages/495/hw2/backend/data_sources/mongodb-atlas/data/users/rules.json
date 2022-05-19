@@ -7,11 +7,30 @@
             "apply_when": {
                 "%%user.id": "%%values.adminID"
             },
+            "fields": {
+                "userID": {}
+            },
             "write": true,
             "insert": true,
             "delete": true,
             "search": true,
             "additional_fields": {}
+        },
+        {
+            "name": "owner",
+            "apply_when": {
+                "%%root.userID": "%%user.id"
+            },
+            "fields": {
+                "userID": {}
+            },
+            "read": true,
+            "insert": false,
+            "delete": false,
+            "search": true,
+            "additional_fields": {
+                "write": true
+            }
         }
     ]
 }
