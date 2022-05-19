@@ -7,20 +7,16 @@ import {
 } from "@material-ui/core";
 import ClearIcon from "@material-ui/icons/Clear";
 
-export const UserItem = ({ user, userActions }) => {
-    console.log(user);
+export const BookItem = ({ book, bookActions }) => {
+    console.log(book);
     return (
         <ListItem>
-            <ListItemText>Username:{user.username}</ListItemText>
-            <ListItemText>Email:{user?.data?.email}</ListItemText>
+            <ListItemText>Title:{book?.title}</ListItemText>
             <ListItemSecondaryAction>
                 <IconButton
                     edge="end"
                     size="small"
                     onClick={() => {
-                        if (user.username !== "admin") {
-                            userActions.deleteUser(user);
-                        }
                     }}
                 >
                     <ClearIcon />

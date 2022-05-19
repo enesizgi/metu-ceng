@@ -1,17 +1,10 @@
 import React from "react";
 import { Button } from "@material-ui/core";
-import { useRealmApp } from "../RealmApp";
-import { useUsers } from "../../hooks/useUsers";
 import { UsersPage } from "./UsersPage";
+import { BooksPage } from "./BooksPage";
 
 export const AdminPage = () => {
   const [currentPage, setCurrentPage] = React.useState("panel");
-
-  const {
-    loading,
-    users,
-    ...userActions
-  } = useUsers();
 
   const handleBooksButtonClick = () => {
     setCurrentPage("books");
@@ -48,13 +41,9 @@ export const AdminPage = () => {
         );
       case "books":
         return (
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleBackButtonClick}
-          >
-            Go Back
-          </Button>
+          <BooksPage
+            handleBackButtonClick={handleBackButtonClick}
+          />
         );
       case "users":
         return (

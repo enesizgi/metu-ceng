@@ -14,12 +14,9 @@ import VisibilityOff from "@material-ui/icons/VisibilityOff";
 import { useRealmApp } from "./RealmApp";
 import { toggleBoolean } from "../utils";
 import { useErrorAlert } from "../hooks/useErrorAlert";
-import { dataSourceName } from "../realm.json";
 
 export function WelcomePage({ isAdminLogin, onRegisterHandler }) {
   const realmApp = useRealmApp();
-  // const { users } = useUsers();
-  // console.log(isAdminLogin);
   // Track whether the user is logging in or signing up for a new account
   const [isSignup, setIsSignup] = React.useState(isAdminLogin ? true : false);
   const toggleIsSignup = () => {
@@ -54,13 +51,7 @@ export function WelcomePage({ isAdminLogin, onRegisterHandler }) {
         await realmApp.logIn(Realm.Credentials.emailPassword(email, password));
       }
       else {
-        const draftUser = {
-          _id: new Realm.BSON.ObjectID(),
-          userID: realmApp.currentUser.id,
-        };
-        const mdb = realmApp.currentUser.mongoClient(dataSourceName);
-        await mdb.db("data").collection("users").insertOne(draftUser);
-  
+        await realmApp.logIn(Realm.Credentials.emailPassword(email, password));
         realmApp.switchToAdmin();
         onRegisterHandler();
       }
