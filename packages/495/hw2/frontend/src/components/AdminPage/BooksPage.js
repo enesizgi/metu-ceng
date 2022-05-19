@@ -47,17 +47,19 @@ export const BooksPage = ({
 
   return (
     <>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={() => {
-          handleBackButtonClick();
-          setIsAddBookButtonClicked(false);
-        }}
-        style={{ margin: "10px" }}
-      >
-        Go Back
-      </Button>
+      {isAdmin && (
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => {
+            handleBackButtonClick();
+            setIsAddBookButtonClicked(false);
+          }}
+          style={{ margin: "10px" }}
+        >
+          Go Back
+        </Button>
+      )}
       <Container maxWidth={false}>
         {loading && showLoader && <LinearProgress />}
         {!loading && !showLoader && !isAddBookButtonClicked && (

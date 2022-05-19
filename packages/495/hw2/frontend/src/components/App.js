@@ -3,6 +3,7 @@ import { AppBar, Toolbar, Button, Typography } from "@material-ui/core";
 import { WelcomePage } from "./WelcomePage";
 import { AdminPage } from "./AdminPage/";
 import { ProfilePage } from "./ProfilePage";
+import { BooksPage } from "./AdminPage/BooksPage";
 import { RealmAppProvider, useRealmApp } from "./RealmApp";
 import { ThemeProvider } from "./Theme";
 import { AppName } from "./AppName";
@@ -31,7 +32,8 @@ function App() {
   const pages = {
     home: "home",
     profile: "profile",
-    admin: "admin"
+    admin: "admin",
+    books: "books"
   };
 
   useEffect(() => {
@@ -62,6 +64,18 @@ function App() {
               >
                 <Typography variant="button">Home</Typography>
               </Button>
+              {!isAdmin &&
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={async () => {
+                    setCurrentPage(pages.books);
+                  }}
+                  style={marginStyle}
+                >
+                  <Typography variant="button">Books</Typography>
+                </Button>
+              }
               {!isAdmin &&
                 <Button
                   variant="contained"
@@ -100,9 +114,11 @@ function App() {
         />
       }
       {!currentUser && !isAdmin && currentPage === pages.home && <WelcomePage />}
+      {currentUser && !isAdmin && currentPage === pages.books && <BooksPage />}
       {!isAdmin && currentUser && currentPage === pages.profile &&
       <ProfilePage
         currentUser={currentUser}
+        isAdmin={isAdmin}
       />}
     </div>
   );

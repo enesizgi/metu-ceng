@@ -4,7 +4,7 @@ import { useUsers } from "../hooks/useUsers";
 import { useBooks } from "../hooks/useBooks";
 import { BookItem } from "./BookItem";
 
-export const ProfilePage = ({ currentUser }) => {
+export const ProfilePage = ({ currentUser, isAdmin }) => {
   const { loading, users, totalUsers, ...userActions } = useUsers(1);
   const [user, setUser] = useState({});
   const [userID, setUserID] = useState("");
@@ -92,7 +92,7 @@ export const ProfilePage = ({ currentUser }) => {
                 key={String(book._id)}
                 book={book}
                 bookActions={bookActions}
-                isDeleteDisabled={true}
+                isAdmin={isAdmin}
                 userID={currentUser?.id}
               />
             </Card>

@@ -6,7 +6,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 // import {FavoriteIcon, FavoriteBorderIcon} from '@mui/icons-material';
 import { Favorite, FavoriteBorder } from '@material-ui/icons';
 
-export const BookItem = ({ book, bookActions, isDeleteDisabled, isAdmin, userID }) => {
+export const BookItem = ({ book, bookActions, isAdmin, userID }) => {
   // console.log(userID);
   // const [isFavoriteClicked, setIsFavoriteClicked] = React.useState(false);
   const isFavorite = book?.favoritedBy?.includes(userID);
@@ -21,7 +21,7 @@ export const BookItem = ({ book, bookActions, isDeleteDisabled, isAdmin, userID 
         />
       )}
 
-      {!isDeleteDisabled && (
+      {isAdmin && (
         <IconButton
           edge="end"
           size="small"
