@@ -1,14 +1,10 @@
 import React from "react";
 import {
     IconButton,
-    ListItem,
-    ListItemSecondaryAction,
-    ListItemText,
 } from "@material-ui/core";
 import ClearIcon from "@material-ui/icons/Clear";
 
 export const UserItem = ({ user, userActions }) => {
-    console.log(user);
     return (
         <div>
             <IconButton

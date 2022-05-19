@@ -13,14 +13,14 @@ import { useShowLoader } from "../../hooks/util-hooks";
 import { WelcomePage } from "../WelcomePage";
 
 export const UsersPage = ({
-  handleBackButtonClick
+  handleBackButtonClick,
+  isAddUserClicked,
+  setIsAddUserClicked
 }) => {
   const [pageNumber, setPageNumber] = React.useState(1);
   const { loading, users, totalUsers, ...userActions } = useUsers(pageNumber);
   const showLoader = useShowLoader(loading, 200);
-  const [isAddUserClicked, setIsAddUserClicked] = React.useState(false);
 
-  console.log(users);
   const onRegisterHandler = () => {
     setIsAddUserClicked(false);
   };
@@ -34,7 +34,10 @@ export const UsersPage = ({
       <Button
         variant="contained"
         color="secondary"
-        onClick={handleBackButtonClick}
+        onClick={() => {
+          handleBackButtonClick();
+          setIsAddUserClicked(false);
+        }}
         style={{ margin: "10px" }}
       >
         Go Back
