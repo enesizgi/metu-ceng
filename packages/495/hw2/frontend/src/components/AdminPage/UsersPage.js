@@ -63,7 +63,7 @@ export const UsersPage = ({
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={() => setPageNumber(prev => Math.max(prev - 1, 0))}
+                  onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
                   style={marginStyle}
                 >
                   Previous Page

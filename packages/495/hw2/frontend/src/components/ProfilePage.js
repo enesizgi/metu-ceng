@@ -78,7 +78,7 @@ export const ProfilePage = ({ currentUser }) => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => setFavoritesPageNumber(prev => Math.max(prev - 1, 0))}
+              onClick={() => setFavoritesPageNumber(prev => Math.max(prev - 1, 1))}
               style={{margin: "10px"}}
             >
               Previous Page
