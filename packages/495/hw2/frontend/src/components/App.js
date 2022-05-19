@@ -32,7 +32,12 @@ function App() {
               variant="contained"
               color="secondary"
               onClick={async () => {
-                await logOut();
+                try {
+                  await logOut();
+                } catch (error) {
+                  console.log('error', error);
+                }
+                window.location.reload();
               }}
             >
               <Typography variant="button">Log Out</Typography>
