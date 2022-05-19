@@ -3,25 +3,24 @@ import { Button } from "@material-ui/core";
 import { UsersPage } from "./UsersPage";
 import { BooksPage } from "./BooksPage";
 
-export const AdminPage = () => {
-  const [currentPage, setCurrentPage] = React.useState("panel");
+export const AdminPage = ({adminCurrentPage, setAdminCurrentPage}) => {
   const [isAddBookButtonClicked, setIsAddBookButtonClicked] = React.useState(false);
 
   const handleBooksButtonClick = () => {
-    setCurrentPage("books");
+    setAdminCurrentPage("books");
   };
 
   const handleUsersButtonClick = () => {
-    setCurrentPage("users");
+    setAdminCurrentPage("users");
   };
 
   const handleBackButtonClick = () => {
     console.log(isAddBookButtonClicked);
-    setCurrentPage(isAddBookButtonClicked ? "books" : "panel");
+    setAdminCurrentPage(isAddBookButtonClicked ? "books" : "panel");
   };
 
   const renderPage = () => {
-    switch (currentPage) {
+    switch (adminCurrentPage) {
       case "panel":
         return (
           <div style={{display:'flex', justifyContent: 'center', padding: '16px'}}>
