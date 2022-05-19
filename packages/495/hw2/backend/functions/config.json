@@ -1,11 +1,16 @@
 [
     {
-        "name": "resetFunc",
+        "name": "getDocumentsWithLimit",
         "private": false,
-        "can_evaluate": {}
+        "disable_arg_logs": true
     },
     {
         "name": "newUserCreation",
         "private": true
+    },
+    {
+        "name": "resetFunc",
+        "private": false,
+        "can_evaluate": {}
     }
 ]
