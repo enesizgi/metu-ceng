@@ -66,14 +66,6 @@ export const ProfilePage = ({ currentUser }) => {
             {`You have ${favoriteBooks.length} favorite book${favoriteBooks.length === 1 ? "" : "s"
               }`}
           </h2>
-          {/* <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setIsAddBookButtonClicked(true)}
-          >
-            Add Book
-          </Button> */}
           <div style={{margin: "10px", display: "flex", justifyContent:"center"}}>
             <Button
               variant="contained"
