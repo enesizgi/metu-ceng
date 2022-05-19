@@ -11,7 +11,7 @@ import {
   removeValueAtIndex
 } from "../utils";
 
-export const useBooks = (pageNumber) => {
+export const useBooks = (queryLimit, pageNumber) => {
   const realmApp = useRealmApp();
   const [books, setBooks] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -24,17 +24,16 @@ export const useBooks = (pageNumber) => {
   });
 
   useEffect(() => {
-    bookCollection.count().then(i => setTotalBooks(i));
     realmApp.currentUser.callFunction("getDocumentsWithLimit", {
-      limit: 3,
-      skip: (pageNumber - 1) * 3,
+      limit: queryLimit || 3,
+      skip: (pageNumber - 1) * (queryLimit || 3),
       collection: "books"
     }).then(books => {
-      console.log(books);
       setBooks(books);
+      setTotalBooks(books.length);
       setLoading(false);
     });
-  }, [bookCollection, pageNumber, realmApp.currentUser]);
+  }, [bookCollection, queryLimit, pageNumber, realmApp.currentUser]);
 
   useWatch(bookCollection, {
     onInsert: (change) => {
@@ -100,6 +99,35 @@ export const useBooks = (pageNumber) => {
     }
   };
 
+  const updateBook = async (draftBook) => {
+    try {
+      await bookCollection.updateOne(draftBook);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addToFavoriteBook = async (book) => {
+    try {
+      // console.log(String(book._id));
+      await realmApp.currentUser.callFunction("addBookToFavorite", {
+        bookID: String(book._id),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const removeFromFavoriteBook = async (book) => {
+    try {
+      await realmApp.currentUser.callFunction("removeBookFromFavorite", {
+        bookID: String(book._id),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Delete a given todo
   const deleteBook = async (book) => {
     await bookCollection.deleteOne({ _id: book._id });
@@ -110,6 +138,9 @@ export const useBooks = (pageNumber) => {
     books,
     totalBooks,
     saveBook,
-    deleteBook
+    deleteBook,
+    updateBook,
+    addToFavoriteBook,
+    removeFromFavoriteBook
   };
 };
