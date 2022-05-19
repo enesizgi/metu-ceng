@@ -80,18 +80,16 @@ export const useBooks = () => {
   });
 
   const saveBook = async (draftBook) => {
-    if (draftBook.username) {
-      draftBook._partition = realmApp.currentUser.id;
-      try {
-        await bookCollection.insertOne(draftBook);
-      } catch (err) {
-        if (err.error.match(/^Duplicate key error/)) {
-          console.warn(
-            `The following error means that we tried to insert a todo multiple times (i.e. an existing todo has the same _id). In this app we just catch the error and move on. In your app, you might want to debounce the save input or implement an additional loading state to avoid sending the request in the first place.`
-          );
-        }
-        console.error(err);
+    draftBook._partition = realmApp.currentUser.id;
+    try {
+      await bookCollection.insertOne(draftBook);
+    } catch (err) {
+      if (err.error.match(/^Duplicate key error/)) {
+        console.warn(
+          `The following error means that we tried to insert a todo multiple times (i.e. an existing todo has the same _id). In this app we just catch the error and move on. In your app, you might want to debounce the save input or implement an additional loading state to avoid sending the request in the first place.`
+        );
       }
+      console.error(err);
     }
   };
 
@@ -101,9 +99,9 @@ export const useBooks = () => {
   };
 
   return {
-      loading,
-      books,
-      saveBook,
-      deleteBook
+    loading,
+    books,
+    saveBook,
+    deleteBook
   };
 };

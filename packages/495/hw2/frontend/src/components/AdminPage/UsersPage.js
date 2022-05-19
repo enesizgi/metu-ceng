@@ -37,31 +37,34 @@ export const UsersPage = ({
         {(loading && showLoader) ? (
           <LinearProgress />
         ) : (
-          <div className="todo-items-container">
-            <Typography component="p" variant="h5">
-              {`You have ${users.length} user${users.length === 1 ? "" : "s"
-                }`}
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={() => {
-                setIsAddUserClicked(true);
-              }}
-            >
-              Add User
-            </Button>
-
-            {users.map((user) => (
-              <Card style={{ width: "600px", height: "300px" }}>
-                <UserItem
-                  key={String(user._id)}
-                  user={user}
-                  userActions={userActions}
-                />
-              </Card>
-            ))}
+          <div>
+            <div className="title-container">
+              <h2>
+                {`You have ${users.length} user${users.length === 1 ? "" : "s"
+                  }`}
+              </h2>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  setIsAddUserClicked(true);
+                }}
+              >
+                Add User
+              </Button>
+            </div>
+            <div className="main-container">
+              {users.map((user) => (
+                <Card style={{ width: "600px", height: "300px" }}>
+                  <UserItem
+                    key={String(user._id)}
+                    user={user}
+                    userActions={userActions}
+                  />
+                </Card>
+              ))}
+            </div>
           </div>
         )}
       </Container>}

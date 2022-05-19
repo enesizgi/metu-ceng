@@ -5,6 +5,7 @@ import { BooksPage } from "./BooksPage";
 
 export const AdminPage = () => {
   const [currentPage, setCurrentPage] = React.useState("panel");
+  const [isAddBookButtonClicked, setIsAddBookButtonClicked] = React.useState(false);
 
   const handleBooksButtonClick = () => {
     setCurrentPage("books");
@@ -15,7 +16,8 @@ export const AdminPage = () => {
   };
 
   const handleBackButtonClick = () => {
-    setCurrentPage("panel");
+    console.log(isAddBookButtonClicked);
+    setCurrentPage(isAddBookButtonClicked ? "books" : "panel");
   };
 
   const renderPage = () => {
@@ -43,6 +45,8 @@ export const AdminPage = () => {
         return (
           <BooksPage
             handleBackButtonClick={handleBackButtonClick}
+            isAddBookButtonClicked={isAddBookButtonClicked}
+            setIsAddBookButtonClicked={setIsAddBookButtonClicked}
           />
         );
       case "users":

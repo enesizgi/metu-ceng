@@ -30,19 +30,19 @@
   flex-grow: 1;
 }
 
-.main-container {
-  padding-top: 48px;
+.title-container {
+  padding-top: 16px;
   display: flex;
+  align-items: center;
+  justify-content: center;
   flex-direction: column;
   height: calc(100% - 64px);
 }
 
-.todo-items-container {
+.main-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
+  height: calc(100% - 64px);
+  padding-top: 16px;
 }
 
 .auth-card {
