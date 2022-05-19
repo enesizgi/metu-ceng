@@ -51,7 +51,9 @@ export function WelcomePage({ isAdminLogin, onRegisterHandler }) {
         await realmApp.logIn(Realm.Credentials.emailPassword(email, password));
       }
       else {
-        await realmApp.logIn(Realm.Credentials.emailPassword(email, password));
+        const credentials = Realm.Credentials.emailPassword(email, password);
+        await realmApp.logIn(credentials);
+        realmApp.removeUser(credentials);
         realmApp.switchToAdmin();
         onRegisterHandler();
       }

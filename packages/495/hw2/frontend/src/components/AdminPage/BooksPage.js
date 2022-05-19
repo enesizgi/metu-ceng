@@ -54,6 +54,7 @@ export const BooksPage = ({
           handleBackButtonClick();
           setIsAddBookButtonClicked(false);
         }}
+        style={{ margin: "10px" }}
       >
         Go Back
       </Button>
@@ -77,7 +78,7 @@ export const BooksPage = ({
             </div>
             <div className="main-container">
               {books.map((book) => (
-                <Card style={{ width: "600px", height: "300px", padding: "24px" }}>
+                <Card style={{  margin: "16px", padding: '16px' }}>
                   <BookItem
                     key={String(book._id)}
                     book={book}

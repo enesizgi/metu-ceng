@@ -24,11 +24,12 @@ export const AdminPage = () => {
     switch (currentPage) {
       case "panel":
         return (
-          <>
+          <div style={{display:'flex', justifyContent: 'center', padding: '24px'}}>
             <Button
               variant="contained"
               color="secondary"
               onClick={handleBooksButtonClick}
+              style={{marginRight: '16px'}}
             >
               Books
             </Button>
@@ -39,7 +40,7 @@ export const AdminPage = () => {
             >
               Users
             </Button>
-          </>
+          </div>
         );
       case "books":
         return (

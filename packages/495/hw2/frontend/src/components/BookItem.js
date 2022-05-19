@@ -11,6 +11,14 @@ export const BookItem = ({ book, bookActions }) => {
     console.log(book);
     return (
         <div>
+            {book.coverImageUrl && (
+                <img
+                    src={book.coverImageUrl}
+                    alt="cover"
+                    style={{ maxWidth: "40%", maxHeight: "40%" }}
+                />
+            )}
+
             <IconButton
                 edge="end"
                 size="small"
@@ -24,7 +32,6 @@ export const BookItem = ({ book, bookActions }) => {
             <p>Author: {book?.author}</p>
             <p>Translator: {book?.translator}</p>
             <p>Editor: {book?.editor}</p>
-            <p>Cover Image URL: {book?.coverImageUrl}</p>
             <p>Publisher: {book?.publisher}</p>
             <p>ISBN: {book?.isbn}</p>
             <p>ISBN13: {book?.isbn13}</p>

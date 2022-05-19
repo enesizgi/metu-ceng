@@ -30,6 +30,7 @@ export const UsersPage = ({
         variant="contained"
         color="secondary"
         onClick={handleBackButtonClick}
+        style={{ margin: "10px" }}
       >
         Go Back
       </Button>
@@ -56,7 +57,7 @@ export const UsersPage = ({
             </div>
             <div className="main-container">
               {users.map((user) => (
-                <Card style={{ width: "600px", height: "300px" }}>
+                <Card style={{ padding: '16px', margin: '16px' }}>
                   <UserItem
                     key={String(user._id)}
                     user={user}
