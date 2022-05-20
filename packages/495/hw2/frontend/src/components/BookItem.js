@@ -1,12 +1,21 @@
 import React from "react";
 import {
-  IconButton
+  IconButton,
+  Button
 } from "@material-ui/core";
 import { Rating } from '@mui/material';
 import ClearIcon from "@material-ui/icons/Clear";
 import { Favorite, FavoriteBorder } from '@material-ui/icons';
+import AddIcon from "@material-ui/icons/Add";
 
-export const BookItem = ({ book, bookActions, isAdmin, userID }) => {
+export const BookItem = ({
+  book, bookActions, isAdmin, userID, isAuthor,
+  setIsReviewButtonClicked, setIsAddBookButtonClicked,
+  isReviewDisabled, setTempBook
+}) => {
+  if (book.author === "asdfasdf") {
+    console.log(book);
+  }
   const isFavorite = book?.favoritedBy?.includes(userID);
   const rating = Object.values(book?.ratings || {});
   const ratingValue = rating.length ? rating.reduce((a, b) => a + b) / rating.length : 0;
@@ -53,7 +62,7 @@ export const BookItem = ({ book, bookActions, isAdmin, userID }) => {
       <p>Translator: {book?.translator}</p>
       <p>Editor: {book?.editor}</p>
       <p>Publisher: {book?.publisher}</p>
-      <div style={{marginBottom: "16px"}}>
+      <div style={{ marginBottom: "16px" }}>
         Rating:
         <Rating
           value={ratingValue}
@@ -61,16 +70,31 @@ export const BookItem = ({ book, bookActions, isAdmin, userID }) => {
           readOnly
         />
       </div>
-      {!isAdmin && (
+      {!isAdmin && !isAuthor && (
         <div>
           Click to rate:
           <Rating
-          precision={0.25}
-          onChange={e => {
-            bookActions.rateABook(e.target.value, book);
-          }}
-        />
+            precision={0.25}
+            onChange={e => {
+              bookActions.rateABook(e.target.value, book);
+            }}
+          />
         </div>
+      )}
+      {!isAuthor && !isAdmin && !isReviewDisabled && (
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => {
+            setIsReviewButtonClicked(true);
+            setIsAddBookButtonClicked(false);
+            setTempBook({ ...book });
+          }}
+          style={{ margin: "10px" }}
+        >
+          Add Review
+        </Button>
       )}
     </div>
   );

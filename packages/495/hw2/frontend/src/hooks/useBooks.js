@@ -50,7 +50,6 @@ export const useBooks = (queryLimit, pageNumber, page) => {
         setLoading(false);
       });
     }
-    return;
   }, [pageNumber, queryLimit, realmApp, page, updateRatedBooks, updateNumberOfReads, updateTotalBooks]);
 
   useEffect(() => {
@@ -133,9 +132,13 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     }
   };
 
-  const updateBook = async (draftBook) => {
+  const updateBook = async (bookID, updatedFields) => {
     try {
-      await bookCollection.updateOne(draftBook);
+      console.log(bookID, updatedFields);
+      await bookCollection.updateOne(
+        { _id: bookID },
+        { $set: updatedFields }
+      );
     } catch (err) {
       console.error(err);
     }
@@ -143,7 +146,6 @@ export const useBooks = (queryLimit, pageNumber, page) => {
 
   const addToFavoriteBook = async (book) => {
     try {
-      // console.log(String(book._id));
       await realmApp.currentUser.callFunction("addBookToFavorite", {
         bookID: String(book._id),
       });

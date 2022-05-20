@@ -4,6 +4,7 @@ import { WelcomePage } from "./WelcomePage";
 import { AdminPage } from "./AdminPage/";
 import { ProfilePage } from "./ProfilePage";
 import { BooksPage } from "./AdminPage/BooksPage";
+import { ReviewsPage } from './ReviewsPage';
 import { RealmAppProvider, useRealmApp } from "./RealmApp";
 import { ThemeProvider } from "./Theme";
 import { AppName } from "./AppName";
@@ -25,6 +26,7 @@ function App() {
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [currentPage, setCurrentPage] = React.useState("home");
   const [adminCurrentPage, setAdminCurrentPage] = React.useState("panel"); // State for adminPage
+  const [isAddBookButtonClicked, setIsAddBookButtonClicked] = React.useState(false); // for author books add button
   const marginStyle = {
     margin: "10px"
   };
@@ -33,7 +35,8 @@ function App() {
     home: "home",
     profile: "profile",
     admin: "admin",
-    books: "books"
+    books: "books",
+    reviews: "reviews"
   };
 
   useEffect(() => {
@@ -64,6 +67,18 @@ function App() {
               >
                 <Typography variant="button">Home</Typography>
               </Button>
+              {!isAdmin &&
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={async () => {
+                    setCurrentPage(pages.reviews);
+                  }}
+                  style={marginStyle}
+                >
+                  <Typography variant="button">Reviews</Typography>
+                </Button>
+              }
               {!isAdmin &&
                 <Button
                   variant="contained"
@@ -114,12 +129,23 @@ function App() {
         />
       }
       {!currentUser && !isAdmin && currentPage === pages.home && <WelcomePage />}
-      {currentUser && !isAdmin && currentPage === pages.books && <BooksPage />}
+      {currentUser && !isAdmin && currentPage === pages.reviews && (
+        <ReviewsPage
+          isAddBookButtonClicked={isAddBookButtonClicked}
+          setIsAddBookButtonClicked={setIsAddBookButtonClicked}
+        />
+      )}
+      {currentUser && !isAdmin && currentPage === pages.books && (
+        <BooksPage
+          isAddBookButtonClicked={isAddBookButtonClicked}
+          setIsAddBookButtonClicked={setIsAddBookButtonClicked}
+        />
+      )}
       {!isAdmin && currentUser && currentPage === pages.profile &&
-      <ProfilePage
-        currentUser={currentUser}
-        isAdmin={isAdmin}
-      />}
+        <ProfilePage
+          currentUser={currentUser}
+          isAdmin={isAdmin}
+        />}
     </div>
   );
 }

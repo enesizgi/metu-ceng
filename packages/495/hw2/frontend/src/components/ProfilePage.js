@@ -21,11 +21,14 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
   }, [currentUser]);
 
   useEffect(() => {
+    if (users[0]?.isAuthor) {
+      return;
+    }
     if (ratedBooks.length > 0) {
       const sum = ratedBooks.reduce((acc, curr) => acc + parseFloat(curr.ratings[userID]), 0);
       setAverageRating(sum / ratedBooks.length);
     }
-  }, [ratedBooks, userID]);
+  }, [ratedBooks, userID, users]);
 
   const userChangeHandler = label => e => {
     const newUser = { [label]: e.target.value };
@@ -55,9 +58,17 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
           <div style={{ margin: "10px", display: "flex" }}>
             Number of Books Read: {numberOfReads}
           </div>
-          <div style={{ margin: "10px", display: "flex" }}>
-            Average Rating: {averageRating.toFixed(2)}
-          </div>
+          {!users[0]?.isAuthor && (
+            <div style={{ margin: "10px", display: "flex" }}>
+              Average Rating: {averageRating.toFixed(2)}
+            </div>
+          )}
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => userActions.updateUser(userID, { isAuthor: true })}
+            style={{ margin: "10px" }}
+          >I am an author!</Button>
           <Button
             variant="contained"
             color="secondary"
@@ -74,12 +85,12 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
             {`You have ${totalBooks} favorite book${totalBooks === 1 ? "" : "s"
               }`}
           </h2>
-          <div style={{margin: "10px", display: "flex", justifyContent:"center"}}>
+          <div style={{ margin: "10px", display: "flex", justifyContent: "center" }}>
             <Button
               variant="contained"
               color="primary"
               onClick={() => setFavoritesPageNumber(prev => Math.max(prev - 1, 1))}
-              style={{margin: "10px"}}
+              style={{ margin: "10px" }}
             >
               Previous Page
             </Button>
@@ -87,7 +98,7 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
               variant="contained"
               color="primary"
               onClick={() => setFavoritesPageNumber(prev => Math.min(prev + 1, Math.ceil(totalBooks / 3)))}
-              style={{margin: "10px"}}
+              style={{ margin: "10px" }}
             >
               Next Page
             </Button>
@@ -102,6 +113,7 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
                 bookActions={bookActions}
                 isAdmin={isAdmin}
                 userID={currentUser?.id}
+                isReviewDisabled={true}
               />
             </Card>
           ))}

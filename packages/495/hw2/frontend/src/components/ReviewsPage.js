@@ -1,5 +1,4 @@
 import React from "react";
-import { useBooks } from "../../hooks/useBooks";
 import {
   Container,
   Button,
@@ -7,32 +6,25 @@ import {
   Card,
   TextField,
   InputLabel,
-  Select,
-  MenuItem
+  MenuItem,
+  Select
 } from "@material-ui/core";
+import { useBooks } from "../hooks/useBooks";
+import { useRealmApp } from "./RealmApp";
+import { useShowLoader } from "../hooks/util-hooks";
+import { BookItem } from "./BookItem";
 import AddIcon from "@material-ui/icons/Add";
-import { BookItem } from "../BookItem";
-import { useShowLoader } from "../../hooks/util-hooks";
-import { useRealmApp } from "../RealmApp";
-import { useUsers } from "../../hooks/useUsers";
 
-export const BooksPage = ({
-  handleBackButtonClick,
-  isAddBookButtonClicked,
-  setIsAddBookButtonClicked,
-  isAdmin
-}) => {
+export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked }) => {
   const realmApp = useRealmApp();
   const [pageNumber, setPageNumber] = React.useState(1);
   const { loading, books, totalBooks, ...bookActions } = useBooks(0, pageNumber);
-  const { users } = useUsers(1);
   const showLoader = useShowLoader(loading, 200);
   const [tempBook, setTempBook] = React.useState({
     isFiction: true,
     Genre: "Mystery"
   });
-  const [isReviewButtonClicked, setIsReviewButtonClicked] = React.useState(false);
-  console.log(tempBook);
+
   const textFieldStyle = {
     margin: "10px"
   };
@@ -45,7 +37,6 @@ export const BooksPage = ({
     coverImageUrl: "Cover Image URL",
     publisher: "Publisher"
   };
-
   const dropdownLabels = {
     isFiction: "isFiction",
     genre: "Genre"
@@ -56,25 +47,14 @@ export const BooksPage = ({
     setTempBook(newBook);
   };
 
-  const reviewChangeHandler = e => {
-    const reviews = tempBook?.reviews || {};
-    const newReviews = { ...reviews, [realmApp.currentUser.id]: e.target.value };
-    const newBook = { ...tempBook, reviews: newReviews };
-    setTempBook(newBook);
-  };
-
   return (
     <>
-      {(isAdmin || isAddBookButtonClicked || isReviewButtonClicked) && (
+      {isAddBookButtonClicked && (
         <Button
           variant="contained"
           color="secondary"
           onClick={() => {
-            if (isAdmin) {
-              handleBackButtonClick();
-            }
             setIsAddBookButtonClicked(false);
-            setIsReviewButtonClicked(false);
           }}
           style={{ margin: "10px" }}
         >
@@ -83,23 +63,21 @@ export const BooksPage = ({
       )}
       <Container maxWidth={false}>
         {loading && showLoader && <LinearProgress />}
-        {!loading && !showLoader && !isAddBookButtonClicked && !isReviewButtonClicked && (
+        {!loading && !showLoader && !isAddBookButtonClicked && (
           <>
             <div className="title-container">
               <h2 className="title-container">
                 {`You have ${totalBooks} book${totalBooks === 1 ? "" : "s"
                   }`}
               </h2>
-              {(isAdmin || users[0]?.isAuthor) && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<AddIcon />}
-                  onClick={() => setIsAddBookButtonClicked(true)}
-                >
-                  Add Book
-                </Button>
-              )}
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={() => setIsAddBookButtonClicked(true)}
+              >
+                Add Review
+              </Button>
               <div style={textFieldStyle}>
                 <Button
                   variant="contained"
@@ -126,12 +104,8 @@ export const BooksPage = ({
                     key={Math.random()}
                     book={book}
                     bookActions={bookActions}
-                    isAdmin={isAdmin}
-                    isAuthor={users[0]?.isAuthor}
+                    isAdmin={false}
                     userID={realmApp.currentUser.id}
-                    setIsReviewButtonClicked={setIsReviewButtonClicked}
-                    setIsAddBookButtonClicked={setIsAddBookButtonClicked}
-                    setTempBook={setTempBook}
                   />
                 </Card>
               ))}
@@ -140,13 +114,6 @@ export const BooksPage = ({
         )}
         {!loading && !showLoader && isAddBookButtonClicked && (
           <>
-            {tempBook.coverImageUrl && (
-              <img
-                src={tempBook.coverImageUrl}
-                alt="cover"
-                style={{ maxWidth: "25%", maxHeight: "25%" }}
-              />
-            )}
             <Card>
               {Object.entries(textFieldLabels).map(([key, label]) => (
                 <TextField
@@ -216,38 +183,8 @@ export const BooksPage = ({
             </Card>
           </>
         )}
-        {!loading && !showLoader && isReviewButtonClicked && (
-          <Card>
-          {/* {Object.entries(textFieldLabels).map(([key, label]) => (
-            <TextField
-              key={key}
-              label={label}
-              style={textFieldStyle}
-              onChange={handleTextFieldChange(key)}
-            />
-          ))} */}
-          <TextField
-              label="review"
-              style={textFieldStyle}
-              onChange={reviewChangeHandler}
-              multiline={true}
-            />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              bookActions.updateBook(tempBook._id, {reviews: tempBook.reviews});
-              setIsAddBookButtonClicked(false);
-              setIsReviewButtonClicked(false);
-              setTempBook({review: ""});
-            }}
-            style={textFieldStyle}
-          >
-            Save
-          </Button>
-        </Card>
-        )}
       </Container>
     </>
   );
+
 };

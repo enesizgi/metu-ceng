@@ -110,14 +110,6 @@ export const useUsers = (pageNumber) => {
     }
   };
 
-  // Toggle whether or not a given todo is complete
-  const toggleUser = async (user) => {
-    await userCollection.updateOne(
-      { _id: user._id },
-      { $set: { isComplete: !user.isComplete } }
-    );
-  };
-
   // Delete a given todo
   const deleteUser = async (user) => {
     await userCollection.deleteOne({ _id: user._id });
@@ -128,7 +120,6 @@ export const useUsers = (pageNumber) => {
     users,
     totalUsers,
     saveUser,
-    toggleUser,
     deleteUser,
     updateUser
   };
