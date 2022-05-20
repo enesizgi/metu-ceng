@@ -1,5 +1,15 @@
 [
     {
+        "name": "getDocumentsWithLimit",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getFavoriteBooksByUser",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
         "name": "newUserCreation",
         "private": true
     },
@@ -21,12 +31,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "getDocumentsWithLimit",
-        "private": false,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "getFavoriteBooksByUser",
+        "name": "rateABook",
         "private": false,
         "disable_arg_logs": true
     }
