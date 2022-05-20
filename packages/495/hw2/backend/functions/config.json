@@ -1,5 +1,27 @@
 [
     {
+        "name": "addBookToFavorite",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "removeBookFromFavorite",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getDocumentsWithLimit",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getReviewsByUser",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
         "name": "resetFunc",
         "private": false,
         "can_evaluate": {}
@@ -10,13 +32,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "addBookToFavorite",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "getDocumentsWithLimit",
+        "name": "rateABook",
         "private": false,
         "disable_arg_logs": true
     },
@@ -28,16 +44,5 @@
     {
         "name": "newUserCreation",
         "private": true
-    },
-    {
-        "name": "rateABook",
-        "private": false,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "removeBookFromFavorite",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
     }
 ]
