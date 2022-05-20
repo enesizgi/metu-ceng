@@ -11,7 +11,8 @@ import AddIcon from "@material-ui/icons/Add";
 export const BookItem = ({
   book, bookActions, isAdmin, userID, isAuthor,
   setIsReviewButtonClicked, setIsAddBookButtonClicked,
-  isReviewDisabled, setTempBook, isRatingDisabled, showReview
+  isReviewDisabled, setTempBook, isRatingDisabled, showReview,
+  showRating
 }) => {
   if (book.author === "asdfasdf") {
     console.log(book);
@@ -20,6 +21,7 @@ export const BookItem = ({
   const rating = Object.values(book?.ratings || {});
   const ratingValue = rating.length ? rating.reduce((a, b) => a + b) / rating.length : 0;
   const review = book?.reviews?.[userID];
+  const yourRating = book?.ratings?.[userID];
 
   console.log('review', review);
 
@@ -100,8 +102,13 @@ export const BookItem = ({
         </Button>
       )}
       {showReview && (
-        <div style={{width: "90%", wordWrap: "break-word"}}>
+        <div style={{width: "90%", wordWrap: "break-word", marginTop: "10px"}}>
           Your Review: {review}asdfasdfasd fadsfdasfasd fadsf dsaasdfasdf
+        </div>
+      )}
+      {showRating && yourRating && (
+        <div style={{width: "90%", wordWrap: "break-word", marginTop: "10px"}}>
+          Your Rating: {yourRating}
         </div>
       )}
     </div>

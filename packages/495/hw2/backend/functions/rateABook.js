@@ -16,12 +16,5 @@ exports = async function(arg){
   var newBook = {...book, ratings, readings: newReadings};
   await collection.updateOne({_id: bookID}, {$set: {ratings: ratings, readings: newReadings}});
   
-  // updating user read books
-  // var userCollection = context.services.get("mongodb-atlas").db("data").collection("users");
-  // var user = await userCollection.findOne({userID: context.user.id});
-  // var readings = user.readings || [];
-  // var newReadings = [...readings, arg.bookID];
-  // await collection.updateOne();
-  
   return newBook;
 };
