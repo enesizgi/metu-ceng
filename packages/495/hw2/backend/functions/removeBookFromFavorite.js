@@ -4,6 +4,10 @@ exports = async function(arg){
   var book = await collection.findOne({ _id: bookID });
   var favorites = book.favoritedBy || [];
   var newFavorites = favorites.filter(i => i !== context.user.id);
-  var newBook = await collection.updateOne({_id: bookID}, {$set: {favoritedBy: newFavorites}})
+
+  var favTimestamps = book.favTimestamps || {};
+  delete favTimestamps[context.user.id];
+
+  var newBook = await collection.updateOne({_id: bookID}, {$set: {favoritedBy: newFavorites, favTimestamps: favTimestamps}});
   return newBook;
 };
