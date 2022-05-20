@@ -1,5 +1,15 @@
 [
     {
+        "name": "newUserCreation",
+        "private": true
+    },
+    {
+        "name": "removeBookFromFavorite",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
+    },
+    {
         "name": "resetFunc",
         "private": false,
         "can_evaluate": {}
@@ -16,13 +26,8 @@
         "disable_arg_logs": true
     },
     {
-        "name": "newUserCreation",
-        "private": true
-    },
-    {
-        "name": "removeBookFromFavorite",
+        "name": "getFavoriteBooksByUser",
         "private": false,
-        "run_as_system": true,
         "disable_arg_logs": true
     }
 ]
