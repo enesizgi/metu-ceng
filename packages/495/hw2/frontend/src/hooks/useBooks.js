@@ -148,6 +148,16 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     }
   };
 
+  const rateABook = async (rating, book) => {
+    try {
+      await realmApp.currentUser.callFunction("rateABook", {
+        bookID: String(book._id),
+        rating: parseFloat(rating)
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
   // Delete a given todo
   const deleteBook = async (book) => {
     await bookCollection.deleteOne({ _id: book._id });
@@ -161,6 +171,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     deleteBook,
     updateBook,
     addToFavoriteBook,
-    removeFromFavoriteBook
+    removeFromFavoriteBook,
+    rateABook
   };
 };

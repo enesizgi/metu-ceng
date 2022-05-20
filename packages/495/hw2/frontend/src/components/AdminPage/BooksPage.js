@@ -29,6 +29,8 @@ export const BooksPage = ({
     isFiction: true
   });
 
+  console.log(books);
+
   const textFieldStyle = {
     margin: "10px"
   };

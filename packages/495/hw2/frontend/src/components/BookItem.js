@@ -2,14 +2,14 @@ import React from "react";
 import {
   IconButton
 } from "@material-ui/core";
+import { Rating } from '@mui/material';
 import ClearIcon from "@material-ui/icons/Clear";
-// import {FavoriteIcon, FavoriteBorderIcon} from '@mui/icons-material';
 import { Favorite, FavoriteBorder } from '@material-ui/icons';
 
 export const BookItem = ({ book, bookActions, isAdmin, userID }) => {
-  // console.log(userID);
-  // const [isFavoriteClicked, setIsFavoriteClicked] = React.useState(false);
   const isFavorite = book?.favoritedBy?.includes(userID);
+  const rating = Object.values(book?.ratings || {});
+  const ratingValue = rating.length ? rating.reduce((a, b) => a + b) / rating.length : 0;
 
   return (
     <div>
@@ -53,6 +53,26 @@ export const BookItem = ({ book, bookActions, isAdmin, userID }) => {
       <p>Translator: {book?.translator}</p>
       <p>Editor: {book?.editor}</p>
       <p>Publisher: {book?.publisher}</p>
+      <div style={{marginBottom: "16px"}}>
+        Rating:
+        <Rating
+          value={ratingValue}
+          precision={0.1}
+          readOnly
+        />
+      </div>
+      {!isAdmin && (
+        <div>
+          Click to rate:
+          <Rating
+          precision={0.25}
+          onChange={e => {
+            console.log(typeof e.target.value);
+            bookActions.rateABook(e.target.value, book);
+          }}
+        />
+        </div>
+      )}
     </div>
   );
 };
