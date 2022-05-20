@@ -1,5 +1,21 @@
 [
     {
+        "name": "resetFunc",
+        "private": false,
+        "can_evaluate": {}
+    },
+    {
+        "name": "addBookToFavorite",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getDocumentsWithLimit",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
         "name": "getFavoriteBooksByUser",
         "private": false,
         "disable_arg_logs": true
@@ -17,22 +33,6 @@
         "name": "removeBookFromFavorite",
         "private": false,
         "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "resetFunc",
-        "private": false,
-        "can_evaluate": {}
-    },
-    {
-        "name": "addBookToFavorite",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "getDocumentsWithLimit",
-        "private": false,
         "disable_arg_logs": true
     }
 ]
