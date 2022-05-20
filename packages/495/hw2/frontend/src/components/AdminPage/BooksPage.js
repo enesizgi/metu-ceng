@@ -43,7 +43,8 @@ export const BooksPage = ({
     translator: "Translator",
     editor: "Editor",
     coverImageUrl: "Cover Image URL",
-    publisher: "Publisher"
+    publisher: "Publisher",
+    year: "Year"
   };
 
   const dropdownLabels = {

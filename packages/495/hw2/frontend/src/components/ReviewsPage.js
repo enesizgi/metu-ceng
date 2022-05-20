@@ -38,7 +38,8 @@ export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked 
     translator: "Translator",
     editor: "Editor",
     coverImageUrl: "Cover Image URL",
-    publisher: "Publisher"
+    publisher: "Publisher",
+    year: "Year"
   };
   const dropdownLabels = {
     isFiction: "isFiction",

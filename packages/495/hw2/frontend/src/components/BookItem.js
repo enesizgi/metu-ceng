@@ -27,7 +27,9 @@ export const BookItem = ({
     return Object.keys(book?.reviews || {}).includes(userID);
   }, [book, userID]);
 
-  console.log('review', review);
+  console.log('review', book);
+
+  const isFiction = book?.isFiction;
 
   return (
     <div>
@@ -71,6 +73,9 @@ export const BookItem = ({
       <p>Translator: {book?.translator}</p>
       <p>Editor: {book?.editor}</p>
       <p>Publisher: {book?.publisher}</p>
+      <p>Fiction or Non-fiction?: {isFiction ? "Fiction" : "Non-fiction"}</p>
+      {isFiction && (<p>Genre: {book?.Genre}</p>)}
+      <p>Year: {book?.year}</p>
       <div style={{ marginBottom: "16px" }}>
         Rating:
         <Rating
