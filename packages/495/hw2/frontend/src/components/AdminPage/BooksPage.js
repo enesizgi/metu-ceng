@@ -29,8 +29,6 @@ export const BooksPage = ({
     isFiction: true
   });
 
-  console.log(books);
-
   const textFieldStyle = {
     margin: "10px"
   };
@@ -42,6 +40,11 @@ export const BooksPage = ({
     editor: "Editor",
     coverImageUrl: "Cover Image URL",
     publisher: "Publisher"
+  };
+
+  const dropdownLabels = {
+    isFiction: "isFiction",
+    genre: "Genre"
   };
 
   const handleTextFieldChange = label => e => {
@@ -123,7 +126,7 @@ export const BooksPage = ({
               <img
                 src={tempBook.coverImageUrl}
                 alt="cover"
-                style={{ maxWidth: "40%", maxHeight: "40%" }}
+                style={{ maxWidth: "25%", maxHeight: "25%" }}
               />
             )}
             <Card>
@@ -146,12 +149,37 @@ export const BooksPage = ({
                 id="demo-simple-select"
                 value={tempBook.isFiction}
                 label="Age"
-                onChange={handleTextFieldChange("isFiction")}
+                onChange={handleTextFieldChange(dropdownLabels.isFiction)}
                 style={textFieldStyle}
               >
                 <MenuItem value={true}>Fiction</MenuItem>
                 <MenuItem value={false}>Non-fiction</MenuItem>
               </Select>
+              {tempBook.isFiction && (
+                <>
+                  <InputLabel
+                    id="demo-simple-select-label2"
+                    style={textFieldStyle}
+                  >
+                    Genre:
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label2"
+                    id="demo-simple-select2"
+                    value={tempBook.genre}
+                    label="Genre"
+                    onChange={handleTextFieldChange(dropdownLabels.genre)}
+                    style={textFieldStyle}
+                  >
+                    <MenuItem value="Mystery">Mystery</MenuItem>
+                    <MenuItem value="Thriller">Thriller</MenuItem>
+                    <MenuItem value="Horror">Horror</MenuItem>
+                    <MenuItem value="Western">Western</MenuItem>
+                    <MenuItem value="Romance">Romance</MenuItem>
+                    <MenuItem value="Science">Science</MenuItem>
+                  </Select>
+                </>
+              )}
               <Button
                 variant="contained"
                 color="primary"
