@@ -159,6 +159,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
         rating: parseFloat(rating)
       });
       bookCollection.count({ readings: realmApp.currentUser.id }).then(i => setNumberOfReads(i));
+      bookCollection.find({ [`ratings.${realmApp.currentUser.id}`]: { $exists: true } }).then(i => setRatedBooks(i));
     } catch (err) {
       console.error(err);
     }
