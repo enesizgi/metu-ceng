@@ -152,7 +152,6 @@ export const BooksPage = ({
                 variant="contained"
                 color="primary"
                 onClick={() => {
-                  console.log(tempBook);
                   bookActions.saveBook(tempBook);
                   setIsAddBookButtonClicked(false);
                   setTempBook({
