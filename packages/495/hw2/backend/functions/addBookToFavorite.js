@@ -9,7 +9,10 @@ exports = async function(arg){
     return book;
   }
 
+  var favTimestamps = book.favTimestamps || {};
+  var newFavTimestamps = {...favTimestamps, [context.user.id]: arg.timestamp};
+
   var newFavorites = [...favorites, context.user.id];
-  var newBook = await collection.updateOne({_id: bookID}, {$set: {favoritedBy: newFavorites}})
+  var newBook = await collection.updateOne({_id: bookID}, {$set: {favoritedBy: newFavorites, favTimestamps: newFavTimestamps}});
   return newBook;
 };

@@ -10,6 +10,7 @@ import {
   replaceValueAtIndex,
   removeValueAtIndex
 } from "../utils";
+import moment from "moment";
 
 export const useBooks = (queryLimit, pageNumber, page) => {
   const realmApp = useRealmApp();
@@ -166,6 +167,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     try {
       await realmApp.currentUser.callFunction("addBookToFavorite", {
         bookID: String(book._id),
+        timestamp: moment().unix()
       });
       getFavoriteBooksByUser();
     } catch (err) {
