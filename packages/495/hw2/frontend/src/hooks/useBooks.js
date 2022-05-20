@@ -25,11 +25,23 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     collection: "books",
   });
 
+  const updateRatedBooks = useCallback(() => {
+    bookCollection.find({ [`ratings.${realmApp.currentUser.id}`]: { $exists: true } }).then(i => setRatedBooks(i));
+  }, [bookCollection, realmApp.currentUser.id]);
+
+  const updateNumberOfReads = useCallback(() => {
+    bookCollection.count({ readings: realmApp.currentUser.id }).then(i => setNumberOfReads(i));
+  }, [bookCollection, realmApp.currentUser.id]);
+
+  const updateTotalBooks = useCallback(() => {
+    bookCollection.count({ favoritedBy: realmApp.currentUser.id }).then(i => setTotalBooks(i));
+  }, [bookCollection, realmApp.currentUser.id]);
+
   const getFavoriteBooksByUser = useCallback(() => {
     if (page === "profile") {
-      bookCollection.find({ [`ratings.${realmApp.currentUser.id}`]: { $exists: true } }).then(i => setRatedBooks(i));
-      bookCollection.count({ readings: realmApp.currentUser.id }).then(i => setNumberOfReads(i));
-      bookCollection.count({ favoritedBy: realmApp.currentUser.id }).then(i => setTotalBooks(i));
+      updateRatedBooks();
+      updateNumberOfReads();
+      updateTotalBooks();
       realmApp.currentUser.callFunction("getFavoriteBooksByUser", {
         limit: queryLimit || 3,
         skip: (pageNumber - 1) * (queryLimit || 3),
@@ -39,7 +51,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
       });
     }
     return;
-  }, [bookCollection, pageNumber, queryLimit, realmApp, page]);
+  }, [pageNumber, queryLimit, realmApp, page, updateRatedBooks, updateNumberOfReads, updateTotalBooks]);
 
   useEffect(() => {
     if (page === "profile") {
@@ -158,8 +170,8 @@ export const useBooks = (queryLimit, pageNumber, page) => {
         bookID: String(book._id),
         rating: parseFloat(rating)
       });
-      bookCollection.count({ readings: realmApp.currentUser.id }).then(i => setNumberOfReads(i));
-      bookCollection.find({ [`ratings.${realmApp.currentUser.id}`]: { $exists: true } }).then(i => setRatedBooks(i));
+      updateNumberOfReads();
+      updateRatedBooks();
     } catch (err) {
       console.error(err);
     }
