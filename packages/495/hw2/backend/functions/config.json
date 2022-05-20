@@ -5,6 +5,11 @@
         "can_evaluate": {}
     },
     {
+        "name": "setRole",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
         "name": "addBookToFavorite",
         "private": false,
         "run_as_system": true,

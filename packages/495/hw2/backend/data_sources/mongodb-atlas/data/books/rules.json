@@ -13,6 +13,7 @@
                 "isComplete": {},
                 "ratings": {},
                 "readings": {},
+                "reviews": {},
                 "title": {}
             },
             "write": true,
@@ -32,6 +33,7 @@
                 "isComplete": {},
                 "ratings": {},
                 "readings": {},
+                "reviews": {},
                 "title": {}
             },
             "write": true,
@@ -53,6 +55,9 @@
                     "write": true
                 },
                 "readings": {
+                    "write": true
+                },
+                "reviews": {
                     "write": true
                 },
                 "title": {}
