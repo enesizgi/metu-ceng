@@ -16,6 +16,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
   const [books, setBooks] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [totalBooks, setTotalBooks] = React.useState(0);
+  const [numberOfReads, setNumberOfReads] = React.useState(0);
 
   const bookCollection = useCollection({
     cluster: dataSourceName,
@@ -25,6 +26,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
 
   const getFavoriteBooksByUser = useCallback(() => {
     if (page === "profile") {
+      bookCollection.count({readings: realmApp.currentUser.id}).then(i => setNumberOfReads(i));
       bookCollection.count({ favoritedBy: realmApp.currentUser.id }).then(i => setTotalBooks(i));
       realmApp.currentUser.callFunction("getFavoriteBooksByUser", {
         limit: queryLimit || 3,
@@ -172,6 +174,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     updateBook,
     addToFavoriteBook,
     removeFromFavoriteBook,
-    rateABook
+    rateABook,
+    numberOfReads
   };
 };

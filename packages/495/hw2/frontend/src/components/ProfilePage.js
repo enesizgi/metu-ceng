@@ -9,7 +9,7 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
   const [user, setUser] = useState({});
   const [userID, setUserID] = useState("");
   const [favoritesPageNumber, setFavoritesPageNumber] = useState(1);
-  const { books: favoriteBooks, totalBooks, ...bookActions } = useBooks(0, favoritesPageNumber, "profile");
+  const { books: favoriteBooks, numberOfReads, totalBooks, ...bookActions } = useBooks(0, favoritesPageNumber, "profile");
   const userLabels = useMemo(
     () => ({
       username: "username",
@@ -43,6 +43,9 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
               onChange={userChangeHandler(userLabels.username)}
               style={{ marginLeft: "16px" }}
             />
+          </div>
+          <div style={{ margin: "10px", display: "flex" }}>
+            Number of Books Read: {numberOfReads}
           </div>
           <Button
             variant="contained"

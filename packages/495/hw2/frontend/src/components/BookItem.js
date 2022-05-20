@@ -67,7 +67,6 @@ export const BookItem = ({ book, bookActions, isAdmin, userID }) => {
           <Rating
           precision={0.25}
           onChange={e => {
-            console.log(typeof e.target.value);
             bookActions.rateABook(e.target.value, book);
           }}
         />
