@@ -9,8 +9,7 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
   const [user, setUser] = useState({});
   const [userID, setUserID] = useState("");
   const [favoritesPageNumber, setFavoritesPageNumber] = useState(1);
-  const { books, totalBooks, ...bookActions } = useBooks(0, favoritesPageNumber);
-  const [favoriteBooks, setFavoriteBooks] = useState([]);
+  const { books: favoriteBooks, totalBooks, ...bookActions } = useBooks(0, favoritesPageNumber, "profile");
   const userLabels = useMemo(
     () => ({
       username: "username",
@@ -24,11 +23,6 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
     const newUser = { [label]: e.target.value };
     setUser(newUser);
   };
-
-  useEffect(() => {
-    const tempBooks = books.filter(book => book?.favoritedBy?.includes(currentUser.id));
-    setFavoriteBooks(tempBooks);
-  }, [books, currentUser]);
 
   return (
     <>
@@ -63,7 +57,7 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
       <>
         <div>
           <h2 className="title-container">
-            {`You have ${favoriteBooks.length} favorite book${favoriteBooks.length === 1 ? "" : "s"
+            {`You have ${totalBooks} favorite book${totalBooks === 1 ? "" : "s"
               }`}
           </h2>
           <div style={{margin: "10px", display: "flex", justifyContent:"center"}}>
@@ -78,7 +72,7 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => setFavoritesPageNumber(prev => Math.min(prev + 1, Math.ceil(favoriteBooks.length / 3)))}
+              onClick={() => setFavoritesPageNumber(prev => Math.min(prev + 1, Math.ceil(totalBooks / 3)))}
               style={{margin: "10px"}}
             >
               Next Page

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useRealmApp } from "../components/RealmApp";
 import { useCollection } from "./useCollection";
 import { dataSourceName } from "../realm.json";
@@ -11,7 +11,7 @@ import {
   removeValueAtIndex
 } from "../utils";
 
-export const useBooks = (queryLimit, pageNumber) => {
+export const useBooks = (queryLimit, pageNumber, page) => {
   const realmApp = useRealmApp();
   const [books, setBooks] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -23,7 +23,25 @@ export const useBooks = (queryLimit, pageNumber) => {
     collection: "books",
   });
 
+  const getFavoriteBooksByUser = useCallback(() => {
+    if (page === "profile") {
+      bookCollection.count({ favoritedBy: realmApp.currentUser.id }).then(i => setTotalBooks(i));
+      realmApp.currentUser.callFunction("getFavoriteBooksByUser", {
+        limit: queryLimit || 3,
+        skip: (pageNumber - 1) * (queryLimit || 3),
+      }).then(books => {
+        setBooks(books);
+        setLoading(false);
+      });
+    }
+    return;
+  }, [bookCollection, pageNumber, queryLimit, realmApp, page]);
+
   useEffect(() => {
+    if (page === "profile") {
+      getFavoriteBooksByUser();
+      return;
+    }
     bookCollection.count().then(i => setTotalBooks(i));
     realmApp.currentUser.callFunction("getDocumentsWithLimit", {
       limit: queryLimit || 3,
@@ -33,7 +51,7 @@ export const useBooks = (queryLimit, pageNumber) => {
       setBooks(books);
       setLoading(false);
     });
-  }, [bookCollection, queryLimit, pageNumber, realmApp.currentUser]);
+  }, [bookCollection, queryLimit, pageNumber, realmApp.currentUser, page, getFavoriteBooksByUser]);
 
   useWatch(bookCollection, {
     onInsert: (change) => {
@@ -113,6 +131,7 @@ export const useBooks = (queryLimit, pageNumber) => {
       await realmApp.currentUser.callFunction("addBookToFavorite", {
         bookID: String(book._id),
       });
+      getFavoriteBooksByUser();
     } catch (err) {
       console.error(err);
     }
@@ -123,6 +142,7 @@ export const useBooks = (queryLimit, pageNumber) => {
       await realmApp.currentUser.callFunction("removeBookFromFavorite", {
         bookID: String(book._id),
       });
+      getFavoriteBooksByUser();
     } catch (err) {
       console.error(err);
     }

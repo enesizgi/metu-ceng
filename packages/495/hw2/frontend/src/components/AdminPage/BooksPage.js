@@ -13,6 +13,7 @@ import {
 import AddIcon from "@material-ui/icons/Add";
 import { BookItem } from "../BookItem";
 import { useShowLoader } from "../../hooks/util-hooks";
+import { useRealmApp } from "../RealmApp";
 
 export const BooksPage = ({
   handleBackButtonClick,
@@ -20,6 +21,7 @@ export const BooksPage = ({
   setIsAddBookButtonClicked,
   isAdmin
 }) => {
+  const realmApp = useRealmApp();
   const [pageNumber, setPageNumber] = React.useState(1);
   const { loading, books, totalBooks, ...bookActions } = useBooks(0, pageNumber);
   const showLoader = useShowLoader(loading, 200);
@@ -104,6 +106,7 @@ export const BooksPage = ({
                     book={book}
                     bookActions={bookActions}
                     isAdmin={isAdmin}
+                    userID={realmApp.currentUser.id}
                   />
                 </Card>
               ))}
