@@ -2,7 +2,6 @@ import React from "react";
 import {
   Container,
   Button,
-  Typography,
   LinearProgress,
   Card,
 } from "@material-ui/core";
