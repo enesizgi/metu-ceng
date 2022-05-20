@@ -17,6 +17,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
   const [loading, setLoading] = React.useState(true);
   const [totalBooks, setTotalBooks] = React.useState(0);
   const [numberOfReads, setNumberOfReads] = React.useState(0);
+  const [ratedBooks, setRatedBooks] = React.useState([]);
 
   const bookCollection = useCollection({
     cluster: dataSourceName,
@@ -26,7 +27,8 @@ export const useBooks = (queryLimit, pageNumber, page) => {
 
   const getFavoriteBooksByUser = useCallback(() => {
     if (page === "profile") {
-      bookCollection.count({readings: realmApp.currentUser.id}).then(i => setNumberOfReads(i));
+      bookCollection.find({ [`ratings.${realmApp.currentUser.id}`]: { $exists: true } }).then(i => setRatedBooks(i));
+      bookCollection.count({ readings: realmApp.currentUser.id }).then(i => setNumberOfReads(i));
       bookCollection.count({ favoritedBy: realmApp.currentUser.id }).then(i => setTotalBooks(i));
       realmApp.currentUser.callFunction("getFavoriteBooksByUser", {
         limit: queryLimit || 3,
@@ -156,6 +158,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
         bookID: String(book._id),
         rating: parseFloat(rating)
       });
+      bookCollection.count({ readings: realmApp.currentUser.id }).then(i => setNumberOfReads(i));
     } catch (err) {
       console.error(err);
     }
@@ -175,6 +178,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     addToFavoriteBook,
     removeFromFavoriteBook,
     rateABook,
-    numberOfReads
+    numberOfReads,
+    ratedBooks
   };
 };

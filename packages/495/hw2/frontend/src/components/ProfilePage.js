@@ -8,8 +8,9 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
   const { loading, users, totalUsers, ...userActions } = useUsers(1);
   const [user, setUser] = useState({});
   const [userID, setUserID] = useState("");
+  const [averageRating, setAverageRating] = useState(0);
   const [favoritesPageNumber, setFavoritesPageNumber] = useState(1);
-  const { books: favoriteBooks, numberOfReads, totalBooks, ...bookActions } = useBooks(0, favoritesPageNumber, "profile");
+  const { books: favoriteBooks, numberOfReads, totalBooks, ratedBooks, ...bookActions } = useBooks(0, favoritesPageNumber, "profile");
   const userLabels = useMemo(
     () => ({
       username: "username",
@@ -18,6 +19,13 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
   useEffect(() => {
     setUserID(currentUser?.id);
   }, [currentUser]);
+
+  useEffect(() => {
+    if (ratedBooks.length > 0) {
+      const sum = ratedBooks.reduce((acc, curr) => acc + parseFloat(curr.ratings[userID]), 0);
+      setAverageRating(sum / ratedBooks.length);
+    }
+  }, [ratedBooks, userID]);
 
   const userChangeHandler = label => e => {
     const newUser = { [label]: e.target.value };
@@ -46,6 +54,9 @@ export const ProfilePage = ({ currentUser, isAdmin }) => {
           </div>
           <div style={{ margin: "10px", display: "flex" }}>
             Number of Books Read: {numberOfReads}
+          </div>
+          <div style={{ margin: "10px", display: "flex" }}>
+            Average Rating: {averageRating.toFixed(2)}
           </div>
           <Button
             variant="contained"

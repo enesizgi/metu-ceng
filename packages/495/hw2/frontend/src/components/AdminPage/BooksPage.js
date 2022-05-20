@@ -73,14 +73,16 @@ export const BooksPage = ({
                 {`You have ${totalBooks} book${totalBooks === 1 ? "" : "s"
                   }`}
               </h2>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={() => setIsAddBookButtonClicked(true)}
-              >
-                Add Book
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  onClick={() => setIsAddBookButtonClicked(true)}
+                >
+                  Add Book
+                </Button>
+              )}
               <div style={textFieldStyle}>
                 <Button
                   variant="contained"
