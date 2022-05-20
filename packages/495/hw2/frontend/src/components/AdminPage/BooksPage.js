@@ -87,7 +87,7 @@ export const BooksPage = ({
           <>
             <div className="title-container">
               <h2 className="title-container">
-                {`You have ${totalBooks} book${totalBooks === 1 ? "" : "s"
+                {`There are ${totalBooks} book${totalBooks === 1 ? "" : "s"
                   }`}
               </h2>
               {(isAdmin || users[0]?.isAuthor) && (

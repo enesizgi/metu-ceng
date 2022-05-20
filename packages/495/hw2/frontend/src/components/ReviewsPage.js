@@ -18,7 +18,8 @@ import AddIcon from "@material-ui/icons/Add";
 export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked }) => {
   const realmApp = useRealmApp();
   const [pageNumber, setPageNumber] = React.useState(1);
-  const { loading, books, totalBooks, ...bookActions } = useBooks(0, pageNumber, "reviews");
+  const { loading, books, reviewedBooks, totalBooks, ...bookActions } = useBooks(0, pageNumber, "reviews");
+  console.log(reviewedBooks);
   const showLoader = useShowLoader(loading, 200);
   const [tempBook, setTempBook] = React.useState({
     isFiction: true,
@@ -67,7 +68,7 @@ export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked 
           <>
             <div className="title-container">
               <h2 className="title-container">
-                {`You have ${totalBooks} book${totalBooks === 1 ? "" : "s"
+                {`You have ${reviewedBooks.length} review${reviewedBooks.length === 1 ? "" : "s"
                   }`}
               </h2>
               {/* <Button
@@ -98,7 +99,7 @@ export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked 
               </div>
             </div>
             <div className="main-container">
-              {books.map((book) => (
+              {reviewedBooks.map((book) => (
                 <Card style={{ margin: "16px", padding: '16px' }}>
                   <BookItem
                     key={Math.random()}
@@ -107,6 +108,8 @@ export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked 
                     isAdmin={false}
                     userID={realmApp.currentUser.id}
                     isReviewDisabled={true}
+                    isRatingDisabled={true}
+                    showReview={true}
                   />
                 </Card>
               ))}

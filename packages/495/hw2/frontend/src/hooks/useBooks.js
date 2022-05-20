@@ -212,6 +212,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     removeFromFavoriteBook,
     rateABook,
     numberOfReads,
-    ratedBooks
+    ratedBooks,
+    reviewedBooks
   };
 };
