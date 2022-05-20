@@ -26,7 +26,8 @@ export const BooksPage = ({
   const { loading, books, totalBooks, ...bookActions } = useBooks(0, pageNumber);
   const showLoader = useShowLoader(loading, 200);
   const [tempBook, setTempBook] = React.useState({
-    isFiction: true
+    isFiction: true,
+    Genre: "Mystery"
   });
 
   const textFieldStyle = {
@@ -51,6 +52,7 @@ export const BooksPage = ({
     const newBook = { ...tempBook, [label]: e.target.value };
     setTempBook(newBook);
   };
+  console.log(tempBook);
 
   return (
     <>
@@ -166,7 +168,7 @@ export const BooksPage = ({
                   <Select
                     labelId="demo-simple-select-label2"
                     id="demo-simple-select2"
-                    value={tempBook.genre}
+                    value={tempBook.Genre}
                     label="Genre"
                     onChange={handleTextFieldChange(dropdownLabels.genre)}
                     style={textFieldStyle}
@@ -187,7 +189,8 @@ export const BooksPage = ({
                   bookActions.saveBook(tempBook);
                   setIsAddBookButtonClicked(false);
                   setTempBook({
-                    isFiction: true
+                    isFiction: true,
+                    Genre: "Mystery"
                   });
                 }}
                 style={textFieldStyle}
