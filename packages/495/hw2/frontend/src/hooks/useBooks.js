@@ -18,6 +18,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
   const [totalBooks, setTotalBooks] = React.useState(0);
   const [numberOfReads, setNumberOfReads] = React.useState(0);
   const [ratedBooks, setRatedBooks] = React.useState([]);
+  const [reviewedBooks, setReviewedBooks] = React.useState([]);
 
   const bookCollection = useCollection({
     cluster: dataSourceName,
@@ -52,11 +53,28 @@ export const useBooks = (queryLimit, pageNumber, page) => {
     }
   }, [pageNumber, queryLimit, realmApp, page, updateRatedBooks, updateNumberOfReads, updateTotalBooks]);
 
+  const getReviewedBooks = useCallback(() => {
+    if (page === "reviews") {
+      bookCollection.find({ [`reviews.${realmApp.currentUser.id}`]: { $exists: true } }).then(i => setReviewedBooks(i));
+      realmApp.currentUser.callFunction("getReviewsByUser", {
+        limit: queryLimit || 3,
+        skip: (pageNumber - 1) * (queryLimit || 3),
+      }).then(books => {
+        setBooks(books);
+        setLoading(false);
+      });
+    }
+  }, [bookCollection, page, pageNumber, queryLimit, realmApp.currentUser]);
+
   useEffect(() => {
     if (page === "profile") {
       getFavoriteBooksByUser();
       return;
     }
+    if (page === "reviews") {
+      getReviewedBooks();
+      return;
+    };
     bookCollection.count().then(i => setTotalBooks(i));
     realmApp.currentUser.callFunction("getDocumentsWithLimit", {
       limit: queryLimit || 3,
@@ -66,7 +84,7 @@ export const useBooks = (queryLimit, pageNumber, page) => {
       setBooks(books);
       setLoading(false);
     });
-  }, [bookCollection, queryLimit, pageNumber, realmApp.currentUser, page, getFavoriteBooksByUser]);
+  }, [bookCollection, queryLimit, pageNumber, realmApp.currentUser, page, getFavoriteBooksByUser, getReviewedBooks]);
 
   useWatch(bookCollection, {
     onInsert: (change) => {

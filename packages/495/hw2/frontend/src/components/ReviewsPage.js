@@ -18,7 +18,7 @@ import AddIcon from "@material-ui/icons/Add";
 export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked }) => {
   const realmApp = useRealmApp();
   const [pageNumber, setPageNumber] = React.useState(1);
-  const { loading, books, totalBooks, ...bookActions } = useBooks(0, pageNumber);
+  const { loading, books, totalBooks, ...bookActions } = useBooks(0, pageNumber, "reviews");
   const showLoader = useShowLoader(loading, 200);
   const [tempBook, setTempBook] = React.useState({
     isFiction: true,
@@ -70,14 +70,14 @@ export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked 
                 {`You have ${totalBooks} book${totalBooks === 1 ? "" : "s"
                   }`}
               </h2>
-              <Button
+              {/* <Button
                 variant="contained"
                 color="primary"
                 startIcon={<AddIcon />}
                 onClick={() => setIsAddBookButtonClicked(true)}
               >
                 Add Review
-              </Button>
+              </Button> */}
               <div style={textFieldStyle}>
                 <Button
                   variant="contained"
@@ -106,6 +106,7 @@ export const ReviewsPage = ({ isAddBookButtonClicked, setIsAddBookButtonClicked 
                     bookActions={bookActions}
                     isAdmin={false}
                     userID={realmApp.currentUser.id}
+                    isReviewDisabled={true}
                   />
                 </Card>
               ))}
