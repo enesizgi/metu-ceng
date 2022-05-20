@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   IconButton,
   Button
@@ -22,6 +22,10 @@ export const BookItem = ({
   const ratingValue = rating.length ? rating.reduce((a, b) => a + b) / rating.length : 0;
   const review = book?.reviews?.[userID];
   const yourRating = book?.ratings?.[userID];
+
+  const isBookReviewed = useMemo(() => {
+    return Object.keys(book?.reviews || {}).includes(userID);
+  }, [book, userID]);
 
   console.log('review', review);
 
@@ -90,7 +94,7 @@ export const BookItem = ({
         <Button
           variant="contained"
           color="primary"
-          startIcon={<AddIcon />}
+          startIcon={!isBookReviewed && <AddIcon />}
           onClick={() => {
             setIsReviewButtonClicked(true);
             setIsAddBookButtonClicked(false);
@@ -98,12 +102,12 @@ export const BookItem = ({
           }}
           style={{ margin: "10px" }}
         >
-          Add Review
+          {isBookReviewed ? "Edit Review" : "Add Review"}
         </Button>
       )}
       {showReview && (
         <div style={{width: "90%", wordWrap: "break-word", marginTop: "10px"}}>
-          Your Review: {review}asdfasdfasd fadsfdasfasd fadsf dsaasdfasdf
+          Your Review: {review}
         </div>
       )}
       {showRating && yourRating && (
