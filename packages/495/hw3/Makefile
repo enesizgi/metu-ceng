@@ -1,6 +1,6 @@
-all: src/Main.java
-	hadoop com.sun.tools.javac.Main src/*.java -cp opencsv-3.8.jar
-	jar cf Hw3.jar src/*.class
+all: Hw3.java
+	hadoop com.sun.tools.javac.Main *.java
+	jar cf Hw3.jar *.class
 
 clean:
-	rm -rf Hw3.jar src/*.class
+	rm -rf Hw3.jar *.class
