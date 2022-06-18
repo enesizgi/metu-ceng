@@ -161,7 +161,17 @@ public class Hw3 {
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             String[] values = value.toString().split("\t");
             FloatWritable duration = new FloatWritable(Float.parseFloat(values[6]));
-            context.write(new Text(values[4]), duration);
+
+            int year = Integer.parseInt(values[4]);
+            if (year <= 2002) {
+                context.write(new Text("(2002 and before)"), duration);
+            }
+            else if ((year > 2002) && (year <= 2012)) {
+                context.write(new Text("(2002-2012]"), duration);
+            }
+            else {
+                context.write(new Text("(2013 and after)"), duration);
+            }
         }
     }
 
@@ -191,12 +201,10 @@ public class Hw3 {
                 return 0;
             }
 
-            int year = Integer.parseInt(key.toString());
-
-            if (year <= 2002) {
+            if (key.toString().equals("(2002 and before)")) {
                 return 0;
             }
-            else if ((year > 2002) && (year <= 2012)) {
+            else if (key.toString().equals("(2002-2012]")) {
                 return 1;
             }
             else {
