@@ -6,8 +6,7 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -18,19 +17,19 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class Hw3 {
 
-    public static class TokenizerMapper
-            extends Mapper<Object, Text, Text, IntWritable> {
+    public static class TotalMapper
+            extends Mapper<LongWritable, Text, Text, IntWritable> {
 
-        private Text word = new Text();
-
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            String[] values = value.toString().split("\t");
-            IntWritable duration = new IntWritable(Integer.parseInt(values[2]));
-            context.write(new Text("total"), duration);
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            if (key.get() != 0) {
+                String[] values = value.toString().split("\t");
+                int duration = Integer.parseInt(values[2]);
+                context.write(new Text("total"), new IntWritable(duration));
+            }
         }
     }
 
-    public static class IntSumReducer
+    public static class TotalReducer
             extends Reducer<Text, IntWritable, Text, IntWritable> {
         private IntWritable result = new IntWritable();
 
@@ -41,19 +40,21 @@ public class Hw3 {
                 sum += val.get();
             }
             result.set(sum);
-            context.write(key, result);
+            context.write(new Text("total"), result);
         }
     }
 
     public static class TokenizerMapper2
-            extends Mapper<Object, Text, Text, FloatWritable> {
+            extends Mapper<LongWritable, Text, Text, FloatWritable> {
 
         private Text word = new Text();
 
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            String[] values = value.toString().split("\t");
-            FloatWritable duration = new FloatWritable(Integer.parseInt(values[2]));
-            context.write(new Text("average"), duration);
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            if (key.get() != 0) {
+                String[] values = value.toString().split("\t");
+                FloatWritable duration = new FloatWritable(Integer.parseInt(values[2]));
+                context.write(new Text("average"), duration);
+            }
         }
     }
 
@@ -75,14 +76,16 @@ public class Hw3 {
     }
 
     public static class TokenizerMapper3
-            extends Mapper<Object, Text, Text, IntWritable> {
+            extends Mapper<LongWritable, Text, Text, IntWritable> {
 
         private Text word = new Text();
 
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            String[] values = value.toString().split("\t");
-            IntWritable duration = new IntWritable(Integer.parseInt(values[2]));
-            context.write(new Text(values[0]), duration);
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            if (key.get() != 0) {
+                String[] values = value.toString().split("\t");
+                IntWritable duration = new IntWritable(Integer.parseInt(values[2]));
+                context.write(new Text(values[0]), duration);
+            }
         }
     }
 
@@ -102,17 +105,19 @@ public class Hw3 {
     }
 
     public static class TokenizerMapper4
-            extends Mapper<Object, Text, Text, FloatWritable> {
+            extends Mapper<LongWritable, Text, Text, FloatWritable> {
 
         private Text word = new Text();
 
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            String[] values = value.toString().split("\t");
-            FloatWritable duration = new FloatWritable(Integer.parseInt(values[5]));
-            if (values[3].equals("True")) {
-                context.write(new Text("explicit"), duration);
-            } else {
-                context.write(new Text("non-explicit"), duration);
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            if (key.get() != 0) {
+                String[] values = value.toString().split("\t");
+                FloatWritable duration = new FloatWritable(Integer.parseInt(values[5]));
+                if (values[3].equals("True")) {
+                    context.write(new Text("explicit"), duration);
+                } else {
+                    context.write(new Text("non-explicit"), duration);
+                }
             }
         }
     }
@@ -154,23 +159,23 @@ public class Hw3 {
     }
 
     public static class TokenizerMapper5
-            extends Mapper<Object, Text, Text, FloatWritable> {
+            extends Mapper<LongWritable, Text, Text, FloatWritable> {
 
         private Text word = new Text();
 
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            String[] values = value.toString().split("\t");
-            FloatWritable duration = new FloatWritable(Float.parseFloat(values[6]));
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            if (key.get() != 0) {
+                String[] values = value.toString().split("\t");
+                FloatWritable duration = new FloatWritable(Float.parseFloat(values[6]));
 
-            int year = Integer.parseInt(values[4]);
-            if (year <= 2002) {
-                context.write(new Text("(2002 and before)"), duration);
-            }
-            else if ((year > 2002) && (year <= 2012)) {
-                context.write(new Text("(2002-2012]"), duration);
-            }
-            else {
-                context.write(new Text("(2013 and after)"), duration);
+                int year = Integer.parseInt(values[4]);
+                if (year <= 2002) {
+                    context.write(new Text("(2002 and before)"), duration);
+                } else if ((year > 2002) && (year <= 2012)) {
+                    context.write(new Text("(2002-2012]"), duration);
+                } else {
+                    context.write(new Text("(2013 and after)"), duration);
+                }
             }
         }
     }
@@ -203,48 +208,41 @@ public class Hw3 {
 
             if (key.toString().equals("(2002 and before)")) {
                 return 0;
-            }
-            else if (key.toString().equals("(2002-2012]")) {
+            } else if (key.toString().equals("(2002-2012]")) {
                 return 1;
-            }
-            else {
+            } else {
                 return 2;
             }
         }
     }
-
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "word count");
         job.setJarByClass(Hw3.class);
         if (args[0].equals("total")) {
-            job.setMapperClass(TokenizerMapper.class);
-            job.setReducerClass(IntSumReducer.class);
+            job.setMapperClass(TotalMapper.class);
+            job.setReducerClass(TotalReducer.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(IntWritable.class);
-        }
-        else if (args[0].equals("average")) {
+        } else if (args[0].equals("average")) {
             job.setMapperClass(TokenizerMapper2.class);
             job.setReducerClass(IntSumReducer2.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(FloatWritable.class);
-        }
-        else if (args[0].equals("popular")) {
+        } else if (args[0].equals("popular")) {
             job.setMapperClass(TokenizerMapper3.class);
             job.setReducerClass(IntSumReducer3.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(IntWritable.class);
-        }
-        else if (args[0].equals("explicitlypopular")) {
+        } else if (args[0].equals("explicitlypopular")) {
             job.setPartitionerClass(CaderPartitioner.class);
             job.setReducerClass(IntSumReducer4.class);
             job.setNumReduceTasks(2);
             job.setMapperClass(TokenizerMapper4.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(FloatWritable.class);
-        }
-        else if (args[0].equals("dancebyyear")) {
+        } else if (args[0].equals("dancebyyear")) {
             job.setPartitionerClass(CaderPartitioner2.class);
             job.setReducerClass(IntSumReducer5.class);
             job.setNumReduceTasks(3);

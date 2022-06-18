@@ -1,7 +1,11 @@
-You can just run the main.py python script.
-It converts the csv into a tsv.
-After conversion, it copies the tsv into hdfs.
-(/user/<username>/input/ directory must be present for this script to work.)
-After running all of the tasks, it prints the results.
+csv2tsv.sh script converts the input.csv named file into input.tsv. You can use this tsv for later.
+To put the input file into hadoop: hadoop fs -put input.tsv .
 
-Script usage: python3 main.py input.csv
+You can use make to compile java program.
+
+commands:
+hadoop jar Hw3.jar Hw3 total input.tsv output_total
+hadoop jar Hw3.jar Hw3 average input.tsv output_average
+hadoop jar Hw3.jar Hw3 popular input.tsv output_popular
+hadoop jar Hw3.jar Hw3 explicitlypopular input.tsv output_explicitlypopular
+hadoop jar Hw3.jar Hw3 dancebyyear input.tsv output_dancebyyear
