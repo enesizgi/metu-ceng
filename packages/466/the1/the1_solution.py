@@ -1,4 +1,6 @@
-import math
+# Muhammed Enes izgi - 2310142
+# Emre Berk Kaya - 2380590
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -55,7 +57,6 @@ def histogram_equalization(img):
 def adaptive_histogram_equalization(img):
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     return clahe.apply(img)
-
 
 
 if __name__ == '__main__':
