@@ -1,17 +1,14 @@
 # Muhammed Enes Izgi - 2310142
 # Emre Berk Kaya - 2380590
 
-from heapq import merge
 from sre_constants import IN
 from sys import flags
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 from sympy import fwht 
 import math
 import scipy.fftpack as fp 
-from skimage import exposure
 
 INPUT_PATH = "/Users/emreberkkaya/Desktop/ceng/466/the2/THE2_images/"
 OUTPUT_PATH = "/Users/emreberkkaya/Desktop/ceng/466/the2/Outputs/"
@@ -162,8 +159,7 @@ def gaussian_lpf_fn(img, r):
 
     for i in range(lowerRow, upperRow + 1):
         for j in range(lowerCol, upperCol + 1):
-            exponent = -2*(math.pi**2) * ((i - center[0])**2 + (j - center[1])**2) * 9 # stddev is assumed to be 3
-            #print(exponent, math.exp(exponent))
+            exponent = -2*(math.pi**2) * ((i - center[0])**2 + (j - center[1])**2) * 4 # stddev is assumed to be 3
             new_image[i][j] = img[i][j] * math.exp(exponent)
     return new_image
 
@@ -335,6 +331,7 @@ if __name__ == '__main__':
         os.makedirs(OUTPUT_PATH)
 
     # Fourier
+    """
     img1 = read_image(INPUT_PATH + "1.png")
     img1_fourier = fourier_transform(img1)
     img1_magn = 20*np.log(np.abs(img1_fourier))
@@ -352,30 +349,28 @@ if __name__ == '__main__':
     write_image(img2_cosine, OUTPUT_PATH + "C2.png")
     img3 = read_image(INPUT_PATH + "3.png")
 
-    """
     img1 = read_image(INPUT_PATH + "1.png")
     img1_hadamard = hadamard_transform(img1)
     write_image(img1_hadamard, OUTPUT_PATH + "H1.png")
-    """
-
-    img3_ilp_r1 = lpf(img3, r = 50, method="ideal")
-    img3_ilp_r2 = lpf(img3, r = 300, method="ideal")
-    img3_ilp_r3 = lpf(img3, r = 950, method="ideal")
+    img3 = read_image(INPUT_PATH + "3.png")
+    img3_ilp_r1 = lpf(img3, r = 5, method="ideal")
+    img3_ilp_r2 = lpf(img3, r = 100, method="ideal")
+    img3_ilp_r3 = lpf(img3, r = 900, method="ideal")
     write_image(img3_ilp_r1, OUTPUT_PATH + "ILP_r1.png")
     write_image(img3_ilp_r2, OUTPUT_PATH + "ILP_r2.png")
     write_image(img3_ilp_r3, OUTPUT_PATH + "ILP_r3.png")
     img3 = read_image(INPUT_PATH + "3.png")
 
-    img3_glp_r1 = lpf(img3, r = 50, method="gaussian")
-    img3_glp_r2 = lpf(img3, r = 300, method="gaussian")
-    img3_glp_r3 = lpf(img3, r = 950, method="gaussian")
+    img3_glp_r1 = lpf(img3, r = 5, method="gaussian")
+    img3_glp_r2 = lpf(img3, r = 100, method="gaussian")
+    img3_glp_r3 = lpf(img3, r = 900, method="gaussian")
     write_image(img3_glp_r1, OUTPUT_PATH + "GLP_r1.png")
     write_image(img3_glp_r2, OUTPUT_PATH + "GLP_r2.png")
     write_image(img3_glp_r3, OUTPUT_PATH + "GLP_r3.png")
 
     img3_blp_r1 = lpf(img3, r = 50, method="butterworth")
-    img3_blp_r2 = lpf(img3, r = 300, method="butterworth")
-    img3_blp_r3 = lpf(img3, r = 1000, method="butterworth")
+    img3_blp_r2 = lpf(img3, r = 100, method="butterworth")
+    img3_blp_r3 = lpf(img3, r = 900, method="butterworth")
     write_image(img3_blp_r1, OUTPUT_PATH + "BLP_r1.png")
     write_image(img3_blp_r2, OUTPUT_PATH + "BLP_r2.png")
     write_image(img3_blp_r3, OUTPUT_PATH + "BLP_r3.png")
@@ -421,4 +416,4 @@ if __name__ == '__main__':
     img7 = read_image(INPUT_PATH + "7.png")
     img7_improved = improve_contrast2(img7)
     write_image(img7_improved, OUTPUT_PATH + "Space7.png")
-    
+    """
