@@ -375,7 +375,11 @@ def improve_contrast2(img):
     return merge_image(R, G, B)
 
 
-def draw_faces(image, lower_yellow, upper_yellow, number_of_faces):
+def detect_faces(image, lower_yellow, upper_yellow, number_of_faces, erod_iterations, dial_iterations):
+    original_image = image.copy()
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+
+    image = cv2.GaussianBlur(image, (3, 3), 0)
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # Create a mask. Threshold the HSV image to get only yellow colors
@@ -384,10 +388,13 @@ def draw_faces(image, lower_yellow, upper_yellow, number_of_faces):
     # The resulting mask will contain white pixels for the edges and black pixels for the background
     # You can then apply this mask to the input image to remove the background
     image = cv2.bitwise_and(image, image, mask=mask)
+    write_image(image, "yellow_mask.jpg")
 
     kernel = np.ones((5, 5), np.uint8)
-    dilation = cv2.dilate(image, kernel, iterations=7)
-    erosion = cv2.erode(dilation, kernel, iterations=7)
+    dilation = cv2.dilate(image, kernel, iterations=dial_iterations)
+    write_image(dilation, "dilation.jpg")
+    erosion = cv2.erode(dilation, kernel, iterations=erod_iterations)
+    write_image(erosion, "erosion.jpg")
 
     imgray = cv2.cvtColor(erosion, cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(imgray, 127, 255, 0)
@@ -413,11 +420,9 @@ def draw_faces(image, lower_yellow, upper_yellow, number_of_faces):
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # sort contours and take the biggest five
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:number_of_faces]
-    original_image = cv2.imread(INPUT_PATH + "2_source.png")
-    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(original_image, (x, y), (x + w, y + h), (255, 0, 0), 20)
+        cv2.rectangle(original_image, (x, y), (x + w, y + h), (255, 0, 0), original_image.shape[0] // 200)
     return original_image
 
 
@@ -425,9 +430,22 @@ if __name__ == '__main__':
     if not os.path.exists(OUTPUT_PATH):
         os.makedirs(OUTPUT_PATH)
 
-    image = cv2.imread(INPUT_PATH + "2_source.png")
+    image = cv2.imread(INPUT_PATH + "1_source.png")
+    lower_yellow = np.array([0, 90, 255])
+    upper_yellow = np.array([19, 157, 255])
+    image = detect_faces(image, lower_yellow, upper_yellow, number_of_faces=3, erod_iterations=3, dial_iterations=6)
+    write_image(image, OUTPUT_PATH + '1_faces.png')
+
+    image2 = cv2.imread(INPUT_PATH + "2_source.png")
     # define range of skin color in HSV
     lower_yellow = np.array([0, 70, 190])
     upper_yellow = np.array([13, 100, 230])
-    image = draw_faces(image, lower_yellow, upper_yellow, number_of_faces=5)
-    write_image(image, OUTPUT_PATH + '2_faces.png')
+    image2 = detect_faces(image2, lower_yellow, upper_yellow, number_of_faces=5, erod_iterations=7, dial_iterations=7)
+    write_image(image2, OUTPUT_PATH + '2_faces.png')
+
+    image3 = cv2.imread(INPUT_PATH + "3_source.png")
+    # define range of skin color in HSV
+    lower_yellow = np.array([0, 70, 150])
+    upper_yellow = np.array([30, 100, 230])
+    image3 = detect_faces(image3, lower_yellow, upper_yellow, number_of_faces=1, erod_iterations=1, dial_iterations=1)
+    write_image(image3, OUTPUT_PATH + '3_faces.png')
