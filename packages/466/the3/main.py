@@ -7,6 +7,8 @@ import os
 import math
 import scipy.fftpack as fp
 from scipy.linalg import hadamard
+import random as rng
+
 
 INPUT_PATH = "./THE3_Images/"
 OUTPUT_PATH = "./Outputs/"
@@ -373,13 +375,26 @@ def improve_contrast2(img):
     return merge_image(R, G, B)
 
 
-if __name__ == '__main__':
-    if not os.path.exists(OUTPUT_PATH):
-        os.makedirs(OUTPUT_PATH)
+def draw_faces(image, lower_yellow, upper_yellow, number_of_faces):
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    img2 = read_image(INPUT_PATH + '3_source.png')
-    # img2 = improve_contrast1(img2)
-    #img2 = hpf(img2, 30, "ideal")
+    # Create a mask. Threshold the HSV image to get only yellow colors
+    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+
+    # The resulting mask will contain white pixels for the edges and black pixels for the background
+    # You can then apply this mask to the input image to remove the background
+    image = cv2.bitwise_and(image, image, mask=mask)
+
+    kernel = np.ones((5, 5), np.uint8)
+    dilation = cv2.dilate(image, kernel, iterations=7)
+    erosion = cv2.erode(dilation, kernel, iterations=7)
+
+    imgray = cv2.cvtColor(erosion, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(imgray, 127, 255, 0)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(erosion, contours, -1, (0, 255, 0), 3)
+
+    img2 = erosion
     shape = img2.shape
     img2 = img2.reshape((-1, 3))
     img2 = np.float32(img2)
@@ -387,12 +402,32 @@ if __name__ == '__main__':
     # Set flags (Just to avoid line break in the code)
     flags = cv2.KMEANS_RANDOM_CENTERS
 
-    compactness,labels,centers = cv2.kmeans(img2, 4, None, criteria, 10, flags)
+    compactness,labels,centers = cv2.kmeans(img2, 2, None, criteria, 10, flags)
     centers = np.uint8(centers)
     labels = labels.flatten()
     segmented_image = centers[labels.flatten()]
     segmented_image = segmented_image.reshape(shape)
-    print(OUTPUT_PATH + 'test.png')
-    write_image(segmented_image, OUTPUT_PATH + 'test.png')
-    print(centers)
-    
+    # print(OUTPUT_PATH + 'test.png')
+    imgray = cv2.cvtColor(segmented_image, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(imgray, 127, 255, 0)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # sort contours and take the biggest five
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:number_of_faces]
+    original_image = cv2.imread(INPUT_PATH + "2_source.png")
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.rectangle(original_image, (x, y), (x + w, y + h), (255, 0, 0), 20)
+    return original_image
+
+
+if __name__ == '__main__':
+    if not os.path.exists(OUTPUT_PATH):
+        os.makedirs(OUTPUT_PATH)
+
+    image = cv2.imread(INPUT_PATH + "2_source.png")
+    # define range of skin color in HSV
+    lower_yellow = np.array([0, 70, 190])
+    upper_yellow = np.array([13, 100, 230])
+    image = draw_faces(image, lower_yellow, upper_yellow, number_of_faces=5)
+    write_image(image, OUTPUT_PATH + '2_faces.png')
