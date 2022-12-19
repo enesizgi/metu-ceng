@@ -8,7 +8,7 @@ import math
 import scipy.fftpack as fp
 from scipy.linalg import hadamard
 
-INPUT_PATH = "./THE2_images/"
+INPUT_PATH = "./THE3_Images/"
 OUTPUT_PATH = "./Outputs/"
 
 
@@ -349,6 +349,7 @@ def powerLaw(img, c, gamma):
 
 def adaptive_histogram_equalization(img):
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+
     return clahe.apply(img)
 
 
@@ -376,88 +377,22 @@ if __name__ == '__main__':
     if not os.path.exists(OUTPUT_PATH):
         os.makedirs(OUTPUT_PATH)
 
-    # Fourier
-    img1 = read_image(INPUT_PATH + "1.png")
-    img1_fourier = fourier_transform(img1)
-    img1_magn = 20 * np.log(np.abs(img1_fourier))
-    write_image(img1_magn, OUTPUT_PATH + 'F1.png')
+    img2 = read_image(INPUT_PATH + '3_source.png')
+    # img2 = improve_contrast1(img2)
+    #img2 = hpf(img2, 30, "ideal")
+    shape = img2.shape
+    img2 = img2.reshape((-1, 3))
+    img2 = np.float32(img2)
+    criteria = (cv2.TERM_CRITERIA_EPS, 10, 1.0)
+    # Set flags (Just to avoid line break in the code)
+    flags = cv2.KMEANS_RANDOM_CENTERS
 
-    img2 = read_image(INPUT_PATH + "2.png")
-
-    img2_fourier = fourier_transform(img2)
-    img2_magn = 20 * np.log(np.abs(img2_fourier))
-    write_image(img2_magn, OUTPUT_PATH + 'F2.png')
-    img1_cosine = cosine_transform(img1)
-    write_image(img1_cosine, OUTPUT_PATH + "C1.png")
-
-    img2_cosine = cosine_transform(img2)
-    write_image(img2_cosine, OUTPUT_PATH + "C2.png")
-    img3 = read_image(INPUT_PATH + "3.png")
-    #
-    img1 = read_image(INPUT_PATH + "1.png")
-    img1_hadamard = hadamard_transform(img1)
-    write_image(img1_hadamard, OUTPUT_PATH + "H1.png")
-    img3 = read_image(INPUT_PATH + "3.png")
-    img3_ilp_r1 = lpf(img3, r=5, method="ideal")
-    img3_ilp_r2 = lpf(img3, r=100, method="ideal")
-    img3_ilp_r3 = lpf(img3, r=900, method="ideal")
-    write_image(img3_ilp_r1, OUTPUT_PATH + "ILP_r1.png")
-    write_image(img3_ilp_r2, OUTPUT_PATH + "ILP_r2.png")
-    write_image(img3_ilp_r3, OUTPUT_PATH + "ILP_r3.png")
-    img3 = read_image(INPUT_PATH + "3.png")
-
-    img3_glp_r1 = lpf(img3, r=5, method="gaussian")
-    img3_glp_r2 = lpf(img3, r=100, method="gaussian")
-    img3_glp_r3 = lpf(img3, r=900, method="gaussian")
-    write_image(img3_glp_r1, OUTPUT_PATH + "GLP_r1.png")
-    write_image(img3_glp_r2, OUTPUT_PATH + "GLP_r2.png")
-    write_image(img3_glp_r3, OUTPUT_PATH + "GLP_r3.png")
-
-    img3_blp_r1 = lpf(img3, r=50, method="butterworth")
-    img3_blp_r2 = lpf(img3, r=100, method="butterworth")
-    img3_blp_r3 = lpf(img3, r=900, method="butterworth")
-    write_image(img3_blp_r1, OUTPUT_PATH + "BLP_r1.png")
-    write_image(img3_blp_r2, OUTPUT_PATH + "BLP_r2.png")
-    write_image(img3_blp_r3, OUTPUT_PATH + "BLP_r3.png")
-
-    img3_ihp_r1 = hpf(img3, r=50, method="ideal")
-    img3_ihp_r2 = hpf(img3, r=300, method="ideal")
-    img3_ihp_r3 = hpf(img3, r=500, method="ideal")
-    write_image(img3_ihp_r1, OUTPUT_PATH + "IHP_r1.png")
-    write_image(img3_ihp_r2, OUTPUT_PATH + "IHP_r2.png")
-    write_image(img3_ihp_r3, OUTPUT_PATH + "IHP_r3.png")
-
-    img3_ghp_r1 = hpf(img3, r=50, method="gaussian")
-    img3_ghp_r2 = hpf(img3, r=300, method="gaussian")
-    img3_ghp_r3 = hpf(img3, r=500, method="gaussian")
-    write_image(img3_ghp_r1, OUTPUT_PATH + "GHP_r1.png")
-    write_image(img3_ghp_r2, OUTPUT_PATH + "GHP_r2.png")
-    write_image(img3_ghp_r3, OUTPUT_PATH + "GHP_r3.png")
-
-    img3_bhp_r1 = hpf(img3, r=50, method="butterworth")
-    img3_bhp_r2 = hpf(img3, r=300, method="butterworth")
-    img3_bhp_r3 = hpf(img3, r=500, method="butterworth")
-    write_image(img3_bhp_r1, OUTPUT_PATH + "BHP_r1.png")
-    write_image(img3_bhp_r2, OUTPUT_PATH + "BHP_r2.png")
-    write_image(img3_bhp_r3, OUTPUT_PATH + "BHP_r3.png")
-
-    img4 = read_image(INPUT_PATH + "4.png")
-    img5 = read_image(INPUT_PATH + "5.png")
-
-    img4_bpf = band_pass(img4, 200, 50)
-    write_image(img4_bpf, OUTPUT_PATH + "BP1.png")
-    img4_brf = band_reject(img4, 200, 50)
-    write_image(img4_brf, OUTPUT_PATH + "BR1.png")
-
-    img5_bpf = band_pass(img5, 200, 50)
-    write_image(img5_bpf, OUTPUT_PATH + "BP2.png")
-    img5_brf = band_reject(img5, 200, 50)
-    write_image(img5_brf, OUTPUT_PATH + "BR2.png")
-
-    img6 = read_image(INPUT_PATH + "6.png")
-    img6_improved = improve_contrast1(img6)
-    write_image(img6_improved, OUTPUT_PATH + "Space6.png")
-
-    img7 = read_image(INPUT_PATH + "7.png")
-    img7_improved = improve_contrast2(img7)
-    write_image(img7_improved, OUTPUT_PATH + "Space7.png")
+    compactness,labels,centers = cv2.kmeans(img2, 4, None, criteria, 10, flags)
+    centers = np.uint8(centers)
+    labels = labels.flatten()
+    segmented_image = centers[labels.flatten()]
+    segmented_image = segmented_image.reshape(shape)
+    print(OUTPUT_PATH + 'test.png')
+    write_image(segmented_image, OUTPUT_PATH + 'test.png')
+    print(centers)
+    
