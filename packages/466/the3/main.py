@@ -70,7 +70,7 @@ def detect_faces(image, lower_yellow, upper_yellow, number_of_faces, erod_iterat
     return original_image
 
 
-def colorizeImage(source_img, img):
+def color_images(source_img, img):
     source_img_gray = cv2.cvtColor(source_img, cv2.COLOR_BGR2GRAY)
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     colored = np.zeros((img_gray.shape[0], img_gray.shape[1], 3))
@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
     source_img1 = cv2.imread(INPUT_PATH + '1_source.png')
     img1 = cv2.imread(INPUT_PATH + '1.png')
-    colored1 = colorizeImage(source_img1, img1)
+    colored1 = color_images(source_img1, img1)
     colored1_R = colored1[:, :, 2]
     colored1_G = colored1[:, :, 1]
     colored1_B = colored1[:, :, 0]
@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
     source_img2 = cv2.imread(INPUT_PATH + '2_source.png')
     img2 = cv2.imread(INPUT_PATH + '2.png')
-    colored2 = colorizeImage(source_img2, img2)
+    colored2 = color_images(source_img2, img2)
     colored2_R = colored2[:, :, 2]
     colored2_G = colored2[:, :, 1]
     colored2_B = colored2[:, :, 0]
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     source_img3 = cv2.imread(INPUT_PATH + '3_source.png')
     img3 = cv2.imread(INPUT_PATH + '3.png')
-    colored3 = colorizeImage(source_img3, img3)
+    colored3 = color_images(source_img3, img3)
     colored3_R = colored3[:, :, 2]
     colored3_G = colored3[:, :, 1]
     colored3_B = colored3[:, :, 0]
@@ -203,7 +203,7 @@ if __name__ == '__main__':
 
     source_img4 = cv2.imread(INPUT_PATH + '4_source.png')
     img4 = cv2.imread(INPUT_PATH + '4.png')
-    colored4 = colorizeImage(source_img4, img4)
+    colored4 = color_images(source_img4, img4)
     colored4_R = colored4[:, :, 2]
     colored4_G = colored4[:, :, 1]
     colored4_B = colored4[:, :, 0]
