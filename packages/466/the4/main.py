@@ -18,9 +18,9 @@ ncut_parameters = [
 ]
 
 meanShift_parameters = [
-    {'quantile': 0.35, 'n_samples': 300, 'max_iter': 200},
-    {'quantile': 0.3, 'n_samples': 200, 'max_iter': 100},
-    {'quantile': 0.2, 'n_samples': 100, 'max_iter': 300},
+    { 'quantile': 0.1, 'n_samples': 100, 'max_iter': 100 },
+    { 'quantile': 0.2, 'n_samples': 200, 'max_iter': 200 },
+    { 'quantile': 0.3, 'n_samples': 300, 'max_iter': 300 },
 ]
 
 
@@ -168,6 +168,8 @@ def makeSegmentation():
     images = ['B1', 'B2', 'B3', 'B4']
     for x in images:
         image = cv.imread(INPUT_PATH + x + '.jpg')
+        if image.shape[0] > 1000 or image.shape[1] > 1000:
+            image = cv.resize(image, (image.shape[1] // 4, image.shape[0] // 4), interpolation = cv.INTER_AREA)
         result = segmentationFn(image, meanShift_parameters[0], meanShift)
         cv.imwrite(OUTPUT_PATH + '{}_algorithm_meanshift_parameterset_1.png'.format(x), result)
         result = segmentationFn(image, meanShift_parameters[1], meanShift)
@@ -185,7 +187,6 @@ def makeSegmentation():
 def main():
     if not os.path.exists(OUTPUT_PATH):
         os.makedirs(OUTPUT_PATH)
-
     a1 = cv.imread(INPUT_PATH + "A1.png")
     a1 = count_flowers(a1, image_name="A1", erode_iterations=2, dilate_iterations=2, threshold=80)
     cv.imwrite(OUTPUT_PATH + "A1.png", a1)
