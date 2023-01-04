@@ -18,12 +18,13 @@ ncut_parameters = [
 ]
 
 meanShift_parameters = [
-    { 'quantile': 0.35, 'n_samples': 300, 'max_iter': 200 },
-    { 'quantile': 0.3, 'n_samples': 200, 'max_iter': 100 },
-    { 'quantile': 0.2, 'n_samples': 100, 'max_iter': 300 },
+    {'quantile': 0.35, 'n_samples': 300, 'max_iter': 200},
+    {'quantile': 0.3, 'n_samples': 200, 'max_iter': 100},
+    {'quantile': 0.2, 'n_samples': 100, 'max_iter': 300},
 ]
 
-def count_flowers(image, threshold, erode_iterations=1, dilate_iterations=1):
+
+def count_flowers(image, image_name, threshold, erode_iterations=1, dilate_iterations=1):
     image = cv.GaussianBlur(image, (5, 5), 0)
 
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -50,7 +51,7 @@ def count_flowers(image, threshold, erode_iterations=1, dilate_iterations=1):
         area = cv.contourArea(contour)
         if area > avg_area * 0.4:
             filtered_contours.append(contour)
-    print(len(filtered_contours))
+    print("The number of flowers in image {} is {}".format(image_name, str(len(filtered_contours))))
 
     return mask_white
 
@@ -65,6 +66,7 @@ def meanShift(image, parameterSet):
     segmentedImg = centers[np.reshape(labels, shape[:2])]
     return segmentedImg.astype(np.uint8)
 
+
 def ncut(image, parameterSet):
     labels1 = segmentation.slic(
         image,
@@ -77,6 +79,7 @@ def ncut(image, parameterSet):
     labels2 = graph.cut_normalized(labels1, g)
     out2 = color.label2rgb(labels2, image, kind='avg', bg_label=0)
     return out2
+
 
 def display(g, title):
     pos = nx.circular_layout(g)
@@ -98,41 +101,43 @@ def regionAdjacency(hierarchy):
             g.add_edge(x, hierarchy[x][1])
     display(g, "RAG")
 
+
 def createTree(hierarchy):
     g = nx.Graph()
     g.add_node("Root")
     for x in range(0, len(hierarchy)):
         g.add_node(x)
     for x in range(0, len(hierarchy)):
-        if hierarchy[x][3] != -1: # If has a parent
+        if hierarchy[x][3] != -1:  # If has a parent
             g.add_edge(hierarchy[x][3], x)
-        else: # First level
+        else:  # First level
             g.add_edge("Root", x)
     nx.draw(g, with_labels=True)
     plt.savefig('tree.png', dpi=300)
     plt.clf()
 
+
 def segmentationFn(image, parameterSet, segmentationMethod):
     shape = image.shape
 
-    blurredImage = cv.blur(image,(3, 3))
+    blurredImage = cv.blur(image, (3, 3))
     # Segmented Image
     segmentedImg = segmentationMethod(blurredImage, parameterSet)
 
-    segmentedBlurred = cv.blur(segmentedImg,(2, 2))
-    edges = cv.Canny(segmentedBlurred,200,250)
+    segmentedBlurred = cv.blur(segmentedImg, (2, 2))
+    edges = cv.Canny(segmentedBlurred, 200, 250)
 
-    blur = cv.GaussianBlur(edges, (3,3), sigmaX=10, sigmaY=10)
+    blur = cv.GaussianBlur(edges, (3, 3), sigmaX=10, sigmaY=10)
     divide = cv.divide(edges, blur, scale=255)
 
     # otsu threshold
-    thresh = cv.threshold(divide, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
+    thresh = cv.threshold(divide, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)[1]
 
     # apply morphology
-    kernel = cv.getStructuringElement(cv.MORPH_RECT, (3,3))
+    kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
     morph = cv.morphologyEx(thresh, cv.MORPH_CLOSE, kernel)
 
-    contours, hierarchy = cv.findContours(morph, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [next, prev, child, parent]
+    contours, hierarchy = cv.findContours(morph, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)  # [next, prev, child, parent]
     contours2, hierarchy2 = cv.findContours(morph, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
 
     createTree(hierarchy[0])
@@ -152,11 +157,12 @@ def segmentationFn(image, parameterSet, segmentationMethod):
     tree = cv.imread('tree.png')
     rag = cv.imread('rag.png')
 
-    tree = cv.resize(tree, (shape[1], shape[0]), interpolation = cv.INTER_AREA)
-    rag = cv.resize(rag, (shape[1], shape[0]), interpolation = cv.INTER_AREA)
+    tree = cv.resize(tree, (shape[1], shape[0]), interpolation=cv.INTER_AREA)
+    rag = cv.resize(rag, (shape[1], shape[0]), interpolation=cv.INTER_AREA)
 
     images = (image, segmentedImg, boundaryOverlay, tree, rag)
     return np.concatenate(images, axis=1)
+
 
 def makeSegmentation():
     images = ['B1', 'B2', 'B3', 'B4']
@@ -176,21 +182,20 @@ def makeSegmentation():
         cv.imwrite(OUTPUT_PATH + '{}_algorithm_ncut_parameterset_3.png'.format(x), result)
 
 
-
 def main():
     if not os.path.exists(OUTPUT_PATH):
         os.makedirs(OUTPUT_PATH)
 
     a1 = cv.imread(INPUT_PATH + "A1.png")
-    a1 = count_flowers(a1, erode_iterations=2, dilate_iterations=2, threshold=80)
+    a1 = count_flowers(a1, image_name="A1", erode_iterations=2, dilate_iterations=2, threshold=80)
     cv.imwrite(OUTPUT_PATH + "A1.png", a1)
 
     a2 = cv.imread(INPUT_PATH + "A2.png")
-    a2 = count_flowers(a2, erode_iterations=25, dilate_iterations=25, threshold=110)
+    a2 = count_flowers(a2, image_name="A2", erode_iterations=25, dilate_iterations=25, threshold=110)
     cv.imwrite(OUTPUT_PATH + "A2.png", a2)
 
     a3 = cv.imread(INPUT_PATH + "A3.png")
-    a3 = count_flowers(a3, erode_iterations=10, dilate_iterations=10, threshold=130)
+    a3 = count_flowers(a3, image_name="A3",erode_iterations=10, dilate_iterations=10, threshold=130)
     cv.imwrite(OUTPUT_PATH + "A3.png", a3)
 
     makeSegmentation()
