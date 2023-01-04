@@ -159,7 +159,7 @@ def segmentationFn(image, parameterSet, segmentationMethod):
     return np.concatenate(images, axis=1)
 
 def makeSegmentation():
-    images = ['B3']
+    images = ['B1', 'B2', 'B3', 'B4']
     for x in images:
         image = cv.imread(INPUT_PATH + x + '.jpg')
         result = segmentationFn(image, meanShift_parameters[0], meanShift)
