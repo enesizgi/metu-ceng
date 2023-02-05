@@ -3,6 +3,7 @@
   "private": true,
   "workspaces": [
     "packages/*",
+    "packages/336/*",
     "packages/435/*",
     "packages/466/*",
     "packages/477/*",
