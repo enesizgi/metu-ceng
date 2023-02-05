@@ -5,7 +5,8 @@
     "packages/*",
     "packages/435/*",
     "packages/466/*",
-    "packages/477/*"
+    "packages/477/*",
+    "packages/495/*"
   ],
   "devDependencies": {
     "lerna": "^6.4.1"
