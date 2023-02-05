@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "packages/466/*"
+    "packages/466/*",
+    "packages/477/*"
   ],
   "devDependencies": {
     "lerna": "^6.4.1"
